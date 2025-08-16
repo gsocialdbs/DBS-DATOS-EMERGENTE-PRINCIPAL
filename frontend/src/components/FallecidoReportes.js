@@ -90,11 +90,11 @@ export const FallecidoReportes = ({ fallecidos = [] }) => {
             <tbody className="bg-white divide-y divide-gray-200">
               {fallecidos.map(fallecido => (
                 <tr key={fallecido.id}>
-                  <td className="table-cell py-2">{fallecido.noExpediente}</td>
-                  <td className="table-cell py-2">{fallecido.policiaFallecido}</td>
-                  <td className="table-cell py-2">{fallecido.causaMuerte}</td>
-                  <td className="table-cell py-2">{fallecido.nombreAseguradora}</td>
-                  <td className="table-cell py-2">{fallecido.estadoExpediente.replace(/_/g, ' ')}</td>
+                  <td className="table-cell py-2">{fallecido.noExpediente || fallecido.no_expediente || 'N/A'}</td>
+                  <td className="table-cell py-2">{fallecido.policiaFallecido || fallecido.policia_fallecido || 'N/A'}</td>
+                  <td className="table-cell py-2">{fallecido.causaMuerte || fallecido.causa_muerte || 'N/A'}</td>
+                  <td className="table-cell py-2">{fallecido.nombreAseguradora || fallecido.lugar_muerte || 'N/A'}</td>
+                  <td className="table-cell py-2">{(fallecido.estadoExpediente || fallecido.estado_expediente || 'pendiente').replace(/_/g, ' ')}</td>
                 </tr>
               ))}
             </tbody>
