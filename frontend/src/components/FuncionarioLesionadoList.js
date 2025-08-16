@@ -5,6 +5,8 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
   const [filterSexo, setFilterSexo] = useState('todos');
   const [filterGrado, setFilterGrado] = useState('todos');
   const [filterTipoIncidente, setFilterTipoIncidente] = useState('todos');
+  const [selectedFuncionario, setSelectedFuncionario] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const availableGrados = [...new Set(funcionariosLesionados.map(f => f.grado || f.funcionario_policial || '').filter(g => g))].sort();
   const tiposIncidente = [
