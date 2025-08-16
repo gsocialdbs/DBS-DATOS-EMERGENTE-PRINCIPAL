@@ -18,11 +18,18 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
   ];
 
   const filteredFuncionarios = funcionariosLesionados.filter(funcionario => {
-    const matchesSearch = funcionario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          funcionario.dni.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSexo = filterSexo === 'todos' || funcionario.sexo === filterSexo;
-    const matchesGrado = filterGrado === 'todos' || funcionario.grado === filterGrado;
-    const matchesTipoIncidente = filterTipoIncidente === 'todos' || funcionario.tipoIncidente === filterTipoIncidente;
+    // Proteger contra campos undefined/null con valores por defecto
+    const nombre = funcionario.nombre || funcionario.funcionario_nombre || '';
+    const dni = funcionario.dni || funcionario.no_expediente || '';
+    const sexo = funcionario.sexo || '';
+    const grado = funcionario.grado || funcionario.funcionario_policial || '';
+    const tipoIncidente = funcionario.tipoIncidente || funcionario.miembro_amputado || '';
+    
+    const matchesSearch = nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          dni.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSexo = filterSexo === 'todos' || sexo === filterSexo;
+    const matchesGrado = filterGrado === 'todos' || grado === filterGrado;
+    const matchesTipoIncidente = filterTipoIncidente === 'todos' || tipoIncidente === filterTipoIncidente;
     
     return matchesSearch && matchesSexo && matchesGrado && matchesTipoIncidente;
   });
