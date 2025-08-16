@@ -3,6 +3,10 @@ import React, { useState } from 'react';
 export const IndemnizacionList = ({ indemnizaciones, onDeleteIndemnizacion, onEditIndemnizacion }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTipoIncidente, setFilterTipoIncidente] = useState('todos');
+  const [selectedIndemnizacion, setSelectedIndemnizacion] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({});
 
   const tiposIncidente = [
     "En cumplimiento del deber",
