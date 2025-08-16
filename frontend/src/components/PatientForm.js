@@ -39,7 +39,7 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
     if (newVisita.visitaNombre && newVisita.fechaVisita) {
       setPatient(prev => ({
         ...prev,
-        visitas: [...prev.visitas, { ...newVisita, id: Date.now() }]
+        visitas: [...(prev.visitas || []), { ...newVisita, id: Date.now() }]
       }));
       setNewVisita({
         visitaNombre: '', visitaGrado: '', visitaDireccion: '', acompanantes: '', fechaVisita: '', notas: '', imagenesVisita: []
