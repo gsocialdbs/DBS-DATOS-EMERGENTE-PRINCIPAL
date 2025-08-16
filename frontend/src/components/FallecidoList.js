@@ -14,14 +14,24 @@ export const FallecidoList = ({ fallecidos, onDeleteFallecido }) => {
     "ACCIDENTE TIPO ATROPELLO (FIN DE SEMANA)", "PROCESO DE INVESTIGACIÓN"
   ];
 
-  const availableYears = [...new Set(fallecidos.map(f => new Date(f.fechaMuerte).getFullYear()))].sort((a, b) => b - a);
+  const availableYears = [...new Set(fallecidos.map(f => {
+    const fechaMuerte = f.fechaMuerte || f.fecha_muerte || '';
+    return fechaMuerte ? new Date(fechaMuerte).getFullYear() : new Date().getFullYear();
+  }))].sort((a, b) => b - a);
 
   const filteredFallecidos = fallecidos.filter(fallecido => {
-    const matchesStatus = filterStatus === 'todos' || fallecido.estadoExpediente === filterStatus;
-    const matchesCausaMuerte = filterCausaMuerte === 'todos' || fallecido.causaMuerte === filterCausaMuerte;
-    const matchesYear = filterYear === 'todos' || new Date(fallecido.fechaMuerte).getFullYear().toString() === filterYear;
-    const matchesSearch = fallecido.policiaFallecido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          fallecido.noExpediente.toLowerCase().includes(searchTerm.toLowerCase());
+    // Proteger contra campos undefined/null con valores por defecto
+    const estadoExpediente = fallecido.estadoExpediente || fallecido.estado_expediente || '';
+    const causaMuerte = fallecido.causaMuerte || fallecido.causa_muerte || '';
+    const fechaMuerte = fallecido.fechaMuerte || fallecido.fecha_muerte || '';
+    const policiaFallecido = fallecido.policiaFallecido || fallecido.policia_fallecido || '';
+    const noExpediente = fallecido.noExpediente || fallecido.no_expediente || '';
+    
+    const matchesStatus = filterStatus === 'todos' || estadoExpediente === filterStatus;
+    const matchesCausaMuerte = filterCausaMuerte === 'todos' || causaMuerte === filterCausaMuerte;
+    const matchesYear = filterYear === 'todos' || (fechaMuerte ? new Date(fechaMuerte).getFullYear().toString() : '') === filterYear;
+    const matchesSearch = policiaFallecido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          noExpediente.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesCausaMuerte && matchesYear && matchesSearch;
   });
 
