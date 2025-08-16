@@ -137,12 +137,12 @@ export const FuncionarioLesionadoReportes = ({ funcionariosLesionados = [] }) =>
             <tbody className="bg-white divide-y divide-gray-200">
               {funcionariosLesionados.map(f => (
                 <tr key={f.id}>
-                  <td className="table-cell py-2">{f.dni}</td>
-                  <td className="table-cell py-2">{f.nombre}</td>
-                  <td className="table-cell py-2">{f.grado}</td>
-                  <td className="table-cell py-2">{f.diagnostico}</td>
-                  <td className="table-cell py-2">{f.hospitalTraslado}</td>
-                  <td className="table-cell py-2">L. {f.totalGastos.toFixed(2)}</td>
+                  <td className="table-cell py-2">{f.dni || f.no_expediente || 'N/A'}</td>
+                  <td className="table-cell py-2">{f.nombre || f.funcionario_nombre || 'N/A'}</td>
+                  <td className="table-cell py-2">{f.grado || f.funcionario_policial || 'N/A'}</td>
+                  <td className="table-cell py-2">{f.diagnostico || f.miembro_amputado || 'N/A'}</td>
+                  <td className="table-cell py-2">{f.hospitalTraslado || f.hospital_traslado || 'N/A'}</td>
+                  <td className="table-cell py-2">L. {(f.totalGastos || f.total_gastos || 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
