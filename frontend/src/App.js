@@ -1,181 +1,453 @@
-import React, { useState, useEffect } from "react";
-import "./App.css";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { LayoutHeader } from './components/LayoutHeader';
+import { BitacoraMain } from './components/BitacoraMain';
+import { FallecidosMain } from './components/FallecidosMain';
+import { FuncionariosLesionadosMain } from './components/FuncionariosLesionadosMain';
+import { IndemnizacionesMain } from './components/IndemnizacionesMain';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { authService } from './services/auth';
+import { 
+  pacientesService, 
+  funcionariosService, 
+  fallecidosService, 
+  indemnizacionesService 
+} from './services/database';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+export default function App() {
+  // Estados para autenticación
+  const [user, setUser] = useState(null);
+  const [loginError, setLoginError] = useState(null);
+  
+  // Estados para datos
+  const [patients, setPatients] = useState([]);
+  const [fallecidos, setFallecidos] = useState([]);
+  const [funcionariosLesionados, setFuncionariosLesionados] = useState([]);
+  const [indemnizaciones, setIndemnizaciones] = useState([]);
+  
+  // Estados para UI
+  const [activeTab, setActiveTab] = useState('bitacora');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const StatusCheckApp = () => {
-  const [statusChecks, setStatusChecks] = useState([]);
-  const [newClientName, setNewClientName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // Cargar status checks al iniciar
+  // Verificar sesión al cargar la aplicación
   useEffect(() => {
-    fetchStatusChecks();
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      loadAllData();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchStatusChecks = async () => {
+  // Función de login
+  const handleLogin = async (credentials) => {
     try {
+      setLoginError(null);
+      const userData = await authService.login(credentials);
+      setUser(userData);
+      await loadAllData();
+    } catch (err) {
+      setLoginError(err.message);
+      throw err;
+    }
+  };
+
+  // Función de logout
+  const handleLogout = () => {
+    authService.logout();
+    setUser(null);
+    setPatients([]);
+    setFallecidos([]);
+    setFuncionariosLesionados([]);
+    setIndemnizaciones([]);
+    setActiveTab('bitacora');
+  };
+
+  const loadAllData = async () => {
+    try {
+      console.log('Iniciando carga de datos...')
       setLoading(true);
-      const response = await axios.get(`${API}/status`);
-      setStatusChecks(response.data);
-      setError("");
-    } catch (e) {
-      console.error("Error fetching status checks:", e);
-      setError("Error al cargar los status checks");
+      setError(null);
+
+      // Cargar datos en paralelo
+      const patientsData = await pacientesService.getAll();
+      console.log('Datos de pacientes cargados:', patientsData)
+
+      const fallecidosData = await fallecidosService.getAll();
+      const funcionariosData = await funcionariosService.getAll();
+      const indemnizacionesData = await indemnizacionesService.getAll();
+
+      setPatients(patientsData || []);
+      setFallecidos(fallecidosData || []);
+      setFuncionariosLesionados(funcionariosData || []);
+      setIndemnizaciones(indemnizacionesData || []);
+
+      console.log('Todos los datos cargados exitosamente')
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError(`Error al cargar los datos: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const createStatusCheck = async (e) => {
-    e.preventDefault();
-    if (!newClientName.trim()) return;
-
+  // ================== FUNCIONES PARA PACIENTES ==================
+  const addPatient = async (newPatient) => {
     try {
-      setLoading(true);
-      const response = await axios.post(`${API}/status`, {
-        client_name: newClientName.trim()
-      });
+      // Convertir el objeto para que coincida con la estructura de la base de datos
+      const patientData = {
+        nombre: newPatient.nombre,
+        dni: newPatient.dni,
+        grado: newPatient.grado,
+        edad: newPatient.edad ? parseInt(newPatient.edad) : null,
+        sexo: newPatient.sexo,
+        promocion: newPatient.promocion,
+        anio_ingreso: newPatient.anioIngreso ? parseInt(newPatient.anioIngreso) : null,
+        tiempo_institucion: newPatient.tiempoInstitucion,
+        direccion_perteneces: newPatient.direccionPerteneces,
+        asignacion: newPatient.asignacion,
+        lugar_asignacion: newPatient.lugarAsignacion,
+        donde_vive: newPatient.dondeVive,
+        celular: newPatient.celular,
+        diagnostico: newPatient.diagnostico,
+        fecha_ingreso: newPatient.fechaIngreso || null,
+        motivo_ingreso: newPatient.motivoIngreso,
+        accidente_detalles: newPatient.accidenteDetalles,
+        quien_traslado: newPatient.quienTraslado,
+        hospital: newPatient.hospital,
+        sala: newPatient.sala,
+        cama: newPatient.cama,
+        familiar_nombre: newPatient.familiarNombre,
+        familiar_parentesco: newPatient.familiarParentesco,
+        familiar_celular: newPatient.familiarCelular,
+        status: newPatient.status || 'interno',
+        fecha_alta: newPatient.fechaAlta || null,
+        observaciones_alta: newPatient.observacionesAlta,
+        dias_incapacidad: newPatient.diasIncapacidad ? parseInt(newPatient.diasIncapacidad) : null
+      };
+
+      console.log('Agregando paciente:', patientData.nombre)
+      const createdPatient = await pacientesService.create(patientData);
       
-      setStatusChecks([...statusChecks, response.data]);
-      setNewClientName("");
-      setError("");
-    } catch (e) {
-      console.error("Error creating status check:", e);
-      setError("Error al crear el status check");
-    } finally {
-      setLoading(false);
+      // Recargar todos los pacientes desde la base de datos
+      const updatedPatients = await pacientesService.getAll();
+      setPatients(updatedPatients || []);
+      
+      console.log('Paciente agregado y lista actualizada')
+      return createdPatient;
+    } catch (err) {
+      console.error('Error agregando paciente:', err);
+      setError('Error al agregar el paciente. Por favor, intenta de nuevo.');
+      throw err;
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const deletePatient = async (id) => {
+    try {
+      await pacientesService.delete(id);
+      setPatients(prevPatients => prevPatients.filter(patient => patient.id !== id));
+    } catch (err) {
+      console.error('Error eliminando paciente:', err);
+      setError('Error al eliminar el paciente. Por favor, intenta de nuevo.');
+      throw err;
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-bold text-white">DB</span>
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-            Sistema de Status Checks
-          </h1>
-          <p className="text-gray-400 text-lg">
-            Gestiona y monitorea los status checks de tus clientes
-          </p>
-        </div>
+  const updatePatientStatus = async (id, newStatus, dischargeInfo = {}) => {
+    try {
+      const updates = {
+        status: newStatus,
+        ...dischargeInfo
+      };
 
-        {/* Error message */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
+      const updatedPatient = await pacientesService.update(id, updates);
+      setPatients(prevPatients =>
+        prevPatients.map(patient =>
+          patient.id === id ? { ...patient, ...updates } : patient
+        )
+      );
+      return updatedPatient;
+    } catch (err) {
+      console.error('Error actualizando estado del paciente:', err);
+      setError('Error al actualizar el estado del paciente. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
 
-        {/* Formulario para crear nuevo status check */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
-          <h2 className="text-2xl font-semibold mb-4 text-blue-400">Crear Nuevo Status Check</h2>
-          <form onSubmit={createStatusCheck} className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                value={newClientName}
-                onChange={(e) => setNewClientName(e.target.value)}
-                placeholder="Nombre del cliente..."
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
-                disabled={loading}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading || !newClientName.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              {loading ? "Creando..." : "Crear Status Check"}
-            </button>
-          </form>
-        </div>
+  const updatePatient = async (updatedPatient) => {
+    try {
+      // Convertir el objeto para que coincida con la estructura de la base de datos
+      const patientData = {
+        ...updatedPatient,
+        anio_ingreso: updatedPatient.anioIngreso,
+        tiempo_institucion: updatedPatient.tiempoInstitucion,
+        direccion_perteneces: updatedPatient.direccionPerteneces,
+        lugar_asignacion: updatedPatient.lugarAsignacion,
+        donde_vive: updatedPatient.dondeVive,
+        fecha_ingreso: updatedPatient.fechaIngreso,
+        motivo_ingreso: updatedPatient.motivoIngreso,
+        accidente_detalles: updatedPatient.accidenteDetalles,
+        quien_traslado: updatedPatient.quienTraslado,
+        familiar_nombre: updatedPatient.familiarNombre,
+        familiar_parentesco: updatedPatient.familiarParentesco,
+        familiar_celular: updatedPatient.familiarCelular,
+        fecha_alta: updatedPatient.fechaAlta,
+        observaciones_alta: updatedPatient.observacionesAlta,
+        dias_incapacidad: updatedPatient.diasIncapacidad
+      };
 
-        {/* Lista de status checks */}
-        <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-blue-400">Status Checks Registrados</h2>
-            <button
-              onClick={fetchStatusChecks}
-              disabled={loading}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-            >
-              {loading ? "Cargando..." : "Actualizar"}
-            </button>
-          </div>
+      await pacientesService.update(updatedPatient.id, patientData);
+      setPatients(prevPatients =>
+        prevPatients.map(patient =>
+          patient.id === updatedPatient.id ? { ...patient, ...updatedPatient } : patient
+        )
+      );
+    } catch (err) {
+      console.error('Error actualizando paciente:', err);
+      setError('Error al actualizar el paciente. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
 
-          {loading && statusChecks.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-400">Cargando status checks...</p>
-            </div>
-          ) : statusChecks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📋</span>
-              </div>
-              <p className="text-gray-400 text-lg mb-2">No hay status checks registrados</p>
-              <p className="text-gray-500 text-sm">Crea el primer status check usando el formulario arriba</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {statusChecks.map((check, index) => (
-                <div
-                  key={check.id}
-                  className="bg-gray-700 rounded-lg p-4 border border-gray-600 hover:border-blue-500/50 transition-all duration-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-white">{check.client_name}</h3>
-                        <p className="text-gray-400 text-sm">ID: {check.id}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-gray-400 text-sm">Creado el:</p>
-                      <p className="text-blue-400 font-medium">{formatDate(check.timestamp)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+  // ================== FUNCIONES PARA FALLECIDOS ==================
+  const addFallecido = async (newFallecido) => {
+    try {
+      const fallecidoData = {
+        ...newFallecido,
+        policia_fallecido: newFallecido.policiaFallecido,
+        no_expediente: newFallecido.noExpediente,
+        causa_muerte: newFallecido.causaMuerte,
+        fecha_muerte: newFallecido.fechaMuerte,
+        lugar_muerte: newFallecido.lugarMuerte,
+        documentos_adjuntos: newFallecido.documentosAdjuntos || []
+      };
 
-        {/* Footer */}
-        <div className="text-center mt-12 text-gray-500">
-          <p>💾 Base de datos: MongoDB | 🚀 Backend: FastAPI | ⚛️ Frontend: React</p>
-          <p className="mt-2">🔥 Hecho con Emergent</p>
+      const createdFallecido = await fallecidosService.create(fallecidoData);
+      setFallecidos(prevFallecidos => [createdFallecido, ...prevFallecidos]);
+      return createdFallecido;
+    } catch (err) {
+      console.error('Error agregando fallecido:', err);
+      setError('Error al agregar el fallecido. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  const onDeleteFallecido = async (id) => {
+    try {
+      await fallecidosService.delete(id);
+      setFallecidos(prevFallecidos => prevFallecidos.filter(fallecido => fallecido.id !== id));
+    } catch (err) {
+      console.error('Error eliminando fallecido:', err);
+      setError('Error al eliminar el fallecido. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  // ================== FUNCIONES PARA FUNCIONARIOS LESIONADOS ==================
+  const addFuncionarioLesionado = async (newFuncionario) => {
+    try {
+      const funcionarioData = {
+        ...newFuncionario,
+        funcionario_nombre: newFuncionario.funcionarioNombre,
+        funcionario_policial: newFuncionario.funcionarioPolicial,
+        no_expediente: newFuncionario.noExpediente,
+        miembro_amputado: newFuncionario.miembroAmputado,
+        hospital_traslado: newFuncionario.hospitalTraslado,
+        total_gastos: newFuncionario.totalGastos || 0
+      };
+
+      const createdFuncionario = await funcionariosService.create(funcionarioData);
+      setFuncionariosLesionados(prev => [createdFuncionario, ...prev]);
+      return createdFuncionario;
+    } catch (err) {
+      console.error('Error agregando funcionario lesionado:', err);
+      setError('Error al agregar el funcionario lesionado. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  const onDeleteFuncionarioLesionado = async (id) => {
+    try {
+      await funcionariosService.delete(id);
+      setFuncionariosLesionados(prev => prev.filter(f => f.id !== id));
+    } catch (err) {
+      console.error('Error eliminando funcionario lesionado:', err);
+      setError('Error al eliminar el funcionario lesionado. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  // ================== FUNCIONES PARA INDEMNIZACIONES ==================
+  const addIndemnizacion = async (newIndemnizacion) => {
+    try {
+      const indemnizacionData = {
+        ...newIndemnizacion,
+        funcionario_policial: newIndemnizacion.funcionarioPolicial,
+        no_expediente: newIndemnizacion.noExpediente,
+        estado_expediente: newIndemnizacion.estadoExpediente,
+        suma_pagar: newIndemnizacion.sumaPagar,
+        causa_indemnizacion: newIndemnizacion.causaIndemnizacion,
+        fecha_solicitud: newIndemnizacion.fechaSolicitud,
+        fecha_pago: newIndemnizacion.fechaPago
+      };
+
+      const createdIndemnizacion = await indemnizacionesService.create(indemnizacionData);
+      setIndemnizaciones(prev => [createdIndemnizacion, ...prev]);
+      return createdIndemnizacion;
+    } catch (err) {
+      console.error('Error agregando indemnización:', err);
+      setError('Error al agregar la indemnización. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  const onDeleteIndemnizacion = async (id) => {
+    try {
+      await indemnizacionesService.delete(id);
+      setIndemnizaciones(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      console.error('Error eliminando indemnización:', err);
+      setError('Error al eliminar la indemnización. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  const updateIndemnizacion = async (updatedIndemnizacion) => {
+    try {
+      const indemnizacionData = {
+        ...updatedIndemnizacion,
+        funcionario_policial: updatedIndemnizacion.funcionarioPolicial,
+        no_expediente: updatedIndemnizacion.noExpediente,
+        estado_expediente: updatedIndemnizacion.estadoExpediente,
+        suma_pagar: updatedIndemnizacion.sumaPagar,
+        causa_indemnizacion: updatedIndemnizacion.causaIndemnizacion,
+        fecha_solicitud: updatedIndemnizacion.fechaSolicitud,
+        fecha_pago: updatedIndemnizacion.fechaPago
+      };
+
+      await indemnizacionesService.update(updatedIndemnizacion.id, indemnizacionData);
+      setIndemnizaciones(prev =>
+        prev.map(i =>
+          i.id === updatedIndemnizacion.id ? { ...i, ...updatedIndemnizacion } : i
+        )
+      );
+    } catch (err) {
+      console.error('Error actualizando indemnización:', err);
+      setError('Error al actualizar la indemnización. Por favor, intenta de nuevo.');
+      throw err;
+    }
+  };
+
+  // Mostrar pantalla de carga
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando datos...</p>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  // Mostrar error si hay alguno
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto">
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Error de Conexión</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={loadAllData}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProtectedRoute 
+      user={user} 
+      onLogin={handleLogin} 
+      onLogout={handleLogout}
+      loginError={loginError}
+    >
+      {/* Mostrar pantalla de carga */}
+      {loading ? (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando datos...</p>
+          </div>
+        </div>
+      ) : error ? (
+        // Mostrar error si hay alguno
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto">
+            <div className="text-red-600 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Error de Conexión</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={loadAllData}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Contenido principal de la aplicación
+        <div className="min-h-screen bg-gray-50 font-sans antialiased">
+          <LayoutHeader onTabChange={setActiveTab} />
+          <main className="container mx-auto px-4 py-8 space-y-8">
+            {activeTab === 'bitacora' && (
+              <BitacoraMain
+                patients={patients}
+                onAddPatient={addPatient}
+                onDeletePatient={deletePatient}
+                onUpdatePatientStatus={updatePatientStatus}
+                onUpdatePatient={updatePatient}
+              />
+            )}
+            {activeTab === 'funcionarios' && (
+              <FuncionariosLesionadosMain
+                patients={patients}
+                funcionariosLesionados={funcionariosLesionados}
+                onAddFuncionarioLesionado={addFuncionarioLesionado}
+                onDeleteFuncionarioLesionado={onDeleteFuncionarioLesionado}
+              />
+            )}
+            {activeTab === 'fallecidos' && (
+              <FallecidosMain
+                fallecidos={fallecidos}
+                onAddFallecido={addFallecido}
+                onDeleteFallecido={onDeleteFallecido}
+              />
+            )}
+            {activeTab === 'indemnizaciones' && (
+              <IndemnizacionesMain
+                indemnizaciones={indemnizaciones}
+                onAddIndemnizacion={addIndemnizacion}
+                onDeleteIndemnizacion={onDeleteIndemnizacion}
+                onUpdateIndemnizacion={updateIndemnizacion}
+              />
+            )}
+          </main>
+        </div>
+      )}
+    </ProtectedRoute>
   );
-};
-
-function App() {
-  return <StatusCheckApp />;
 }
-
-export default App;
