@@ -120,8 +120,8 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
       <section>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Registro de Visitas</h3>
         <div className="space-y-4 mb-4">
-          {patient.visitas.map((visita, index) => (
-            <div key={visita.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          {(patient.visitas || []).map((visita, index) => (
+            <div key={visita.id || index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <p className="font-medium">Visita #{index + 1} - {visita.fechaVisita}</p>
               <p className="text-sm text-gray-700">Visitante: {visita.visitaNombre} ({visita.visitaGrado})</p>
               <p className="text-sm text-gray-700">Acompañantes: {visita.acompanantes}</p>
@@ -129,7 +129,7 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
               {visita.imagenesVisita && visita.imagenesVisita.length > 0 && (
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {visita.imagenesVisita.map((img, imgIdx) => (
-                    <img key={imgIdx} src={URL.createObjectURL(img)} alt={`Visita ${idx + 1} - Imagen ${imgIdx + 1}`} className="w-full h-24 object-cover rounded-md" />
+                    <img key={imgIdx} src={URL.createObjectURL(img)} alt={`Visita ${index + 1} - Imagen ${imgIdx + 1}`} className="w-full h-24 object-cover rounded-md" />
                   ))}
                 </div>
               )}
