@@ -6,7 +6,7 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
   const [filterGrado, setFilterGrado] = useState('todos');
   const [filterTipoIncidente, setFilterTipoIncidente] = useState('todos');
 
-  const availableGrados = [...new Set(funcionariosLesionados.map(f => f.grado))].sort();
+  const availableGrados = [...new Set(funcionariosLesionados.map(f => f.grado || f.funcionario_policial || '').filter(g => g))].sort();
   const tiposIncidente = [
     "HERIDO POR ARMA DE FUEGO (C/D)",
     "HERIDO POR ARMA DE FUEGO (F/D)",
