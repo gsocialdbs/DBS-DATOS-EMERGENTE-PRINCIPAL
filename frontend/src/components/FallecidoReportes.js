@@ -44,10 +44,10 @@ export const FallecidoReportes = ({ fallecidos = [] }) => {
         </div>
         {Object.entries(porEstado).map(([estado, count]) => (
           <div key={estado} className="report-card bg-gray-50 border-gray-500">
-            <h3 className="font-semibold text-gray-800 text-lg">{estado.replace(/_/g, ' ')}</h3>
+            <h3 className="font-semibold text-gray-800 text-lg">{(estado || 'pendiente').replace(/_/g, ' ')}</h3>
             <p className="text-4xl font-extrabold text-gray-900">{count}</p>
             <button
-              onClick={() => alert(generateReport(fallecidos.filter(f => f.estadoExpediente === estado), estado.replace(/_/g, ' ')))}
+              onClick={() => alert(generateReport(fallecidos.filter(f => (f.estadoExpediente || f.estado_expediente) === estado), (estado || 'pendiente').replace(/_/g, ' ')))}
               className="report-button bg-gray-600 hover:bg-gray-700 shadow-md"
             >
               Ver Reporte
