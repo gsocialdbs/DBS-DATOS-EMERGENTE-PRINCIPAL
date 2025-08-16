@@ -22,7 +22,8 @@ export const FuncionarioLesionadoReportes = ({ funcionariosLesionados = [] }) =>
     
     let chartString = "Gráfica de Gastos por Hospital:\n\n";
     labels.forEach((label, index) => {
-      chartString += `${label}: L. ${data[index].toFixed(2)} (${'█'.repeat(Math.floor(data[index] / Math.max(...data) * 20))})\n`;
+      const amount = typeof data[index] === 'number' ? data[index] : 0;
+      chartString += `${label}: L. ${amount.toFixed(2)} (${'█'.repeat(Math.floor(amount / Math.max(...data, 1) * 20))})\n`;
     });
     alert(chartString);
   };
