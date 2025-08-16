@@ -27,6 +27,83 @@ export const IndemnizacionList = ({ indemnizaciones, onDeleteIndemnizacion, onEd
     return matchesSearch && matchesTipoIncidente;
   });
 
+  const showDetalles = (indemnizacion) => {
+    setSelectedIndemnizacion(indemnizacion);
+    setEditData({
+      funcionarioPolicial: indemnizacion.funcionarioPolicial || indemnizacion.funcionario_policial || '',
+      noExpediente: indemnizacion.noExpediente || indemnizacion.no_expediente || '',
+      estadoExpediente: indemnizacion.estadoExpediente || indemnizacion.estado_expediente || 'en_proceso',
+      sumaPagar: indemnizacion.sumaPagar || indemnizacion.suma_pagar || 0,
+      causaIndemnizacion: indemnizacion.causaIndemnizacion || indemnizacion.causa_indemnizacion || '',
+      fechaSolicitud: indemnizacion.fechaSolicitud || indemnizacion.fecha_solicitud || '',
+      fechaPago: indemnizacion.fechaPago || indemnizacion.fecha_pago || '',
+      observaciones: indemnizacion.observaciones || ''
+    });
+    setEditMode(false);
+    setShowModal(true);
+  };
+
+  const enableEditMode = () => {
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    // Restaurar datos originales
+    setEditData({
+      funcionarioPolicial: selectedIndemnizacion.funcionarioPolicial || selectedIndemnizacion.funcionario_policial || '',
+      noExpediente: selectedIndemnizacion.noExpediente || selectedIndemnizacion.no_expediente || '',
+      estadoExpediente: selectedIndemnizacion.estadoExpediente || selectedIndemnizacion.estado_expediente || 'en_proceso',
+      sumaPagar: selectedIndemnizacion.sumaPagar || selectedIndemnizacion.suma_pagar || 0,
+      causaIndemnizacion: selectedIndemnizacion.causaIndemnizacion || selectedIndemnizacion.causa_indemnizacion || '',
+      fechaSolicitud: selectedIndemnizacion.fechaSolicitud || selectedIndemnizacion.fecha_solicitud || '',
+      fechaPago: selectedIndemnizacion.fechaPago || selectedIndemnizacion.fecha_pago || '',
+      observaciones: selectedIndemnizacion.observaciones || ''
+    });
+  };
+
+  const saveChanges = async () => {
+    try {
+      const updatedData = {
+        funcionario_policial: editData.funcionarioPolicial,
+        no_expediente: editData.noExpediente,
+        estado_expediente: editData.estadoExpediente,
+        suma_pagar: parseFloat(editData.sumaPagar) || 0,
+        causa_indemnizacion: editData.causaIndemnizacion,
+        fecha_solicitud: editData.fechaSolicitud,
+        fecha_pago: editData.fechaPago,
+        observaciones: editData.observaciones
+      };
+
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/indemnizaciones/${selectedIndemnizacion.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (response.ok) {
+        alert('✅ Información actualizada exitosamente');
+        setEditMode(false);
+        closeModal();
+        window.location.reload(); // Refrescar para mostrar cambios
+      } else {
+        alert('❌ Error al actualizar la información');
+      }
+    } catch (error) {
+      console.error('Error al guardar cambios:', error);
+      alert('❌ Error al guardar los cambios');
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedIndemnizacion(null);
+    setEditMode(false);
+    setEditData({});
+  };
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Listado de Indemnizaciones</h2>
