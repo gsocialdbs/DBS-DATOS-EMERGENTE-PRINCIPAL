@@ -93,12 +93,12 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredFuncionarios.map(funcionario => (
               <tr key={funcionario.id} className="hover:bg-gray-50 transition-colors">
-                <td className="table-cell font-medium text-gray-900">{funcionario.dni}</td>
-                <td className="table-cell text-gray-700">{funcionario.nombre}</td>
-                <td className="table-cell text-gray-700">{funcionario.grado}</td>
-                <td className="table-cell text-gray-700">{funcionario.tipoIncidente}</td>
-                <td className="table-cell text-gray-700">{funcionario.hospitalTraslado}</td>
-                <td className="table-cell text-gray-700">L. {funcionario.totalGastos.toFixed(2)}</td>
+                <td className="table-cell font-medium text-gray-900">{funcionario.dni || funcionario.no_expediente || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{funcionario.nombre || funcionario.funcionario_nombre || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{funcionario.grado || funcionario.funcionario_policial || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{funcionario.tipoIncidente || funcionario.miembro_amputado || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{funcionario.hospitalTraslado || funcionario.hospital_traslado || 'N/A'}</td>
+                <td className="table-cell text-gray-700">L. {(funcionario.totalGastos || funcionario.total_gastos || 0).toFixed(2)}</td>
                 <td className="table-cell">
                   <button
                     onClick={() => alert(JSON.stringify(funcionario, null, 2))} // Mostrar detalles completos
