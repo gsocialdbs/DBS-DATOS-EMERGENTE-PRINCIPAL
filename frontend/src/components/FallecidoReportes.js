@@ -1,15 +1,17 @@
 import React from 'react';
 import { generateReport, printContent, downloadExcel } from '../utils/helpers';
 
-export const FallecidoReportes = ({ fallecidos }) => {
+export const FallecidoReportes = ({ fallecidos = [] }) => {
   const totalFallecidos = fallecidos.length;
   const porEstado = fallecidos.reduce((acc, curr) => {
-    acc[curr.estadoExpediente] = (acc[curr.estadoExpediente] || 0) + 1;
+    const estado = curr.estadoExpediente || curr.estado_expediente || 'pendiente';
+    acc[estado] = (acc[estado] || 0) + 1;
     return acc;
   }, {});
 
   const causasMuerteData = fallecidos.reduce((acc, curr) => {
-    acc[curr.causaMuerte] = (acc[curr.causaMuerte] || 0) + 1;
+    const causa = curr.causaMuerte || curr.causa_muerte || 'No especificada';
+    acc[causa] = (acc[causa] || 0) + 1;
     return acc;
   }, {});
 
