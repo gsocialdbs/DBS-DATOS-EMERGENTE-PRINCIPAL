@@ -353,8 +353,61 @@ def main():
         }
         tester.test_update_paciente(patient_to_update['id'], updates)
     
-    # Test 6: Status checks (original functionality)
-    print("\n📋 TEST 6: Status Checks")
+    # Test 6: FUNCIONARIOS LESIONADOS - Main focus of this test
+    print("\n📋 TEST 6: FUNCIONARIOS LESIONADOS (MAIN FOCUS)")
+    print("=" * 60)
+    
+    # Test 6.1: Get funcionarios lesionados (empty)
+    print("\n📋 TEST 6.1: Get Funcionarios Lesionados (Initial)")
+    tester.test_get_funcionarios_lesionados_empty()
+    
+    # Test 6.2: Create funcionarios lesionados - Testing the exact scenario from the bug report
+    print("\n📋 TEST 6.2: Create Funcionarios Lesionados (Bug Fix Test)")
+    test_funcionarios = [
+        {
+            "funcionario_nombre": "Test Funcionario Corregido",
+            "funcionario_policial": "Cabo Test Funcionario Corregido",
+            "no_expediente": "EXP-001-2024",
+            "miembro_amputado": "HERIDO POR ARMA DE FUEGO (C/D)",
+            "hospital_traslado": "HOSPITAL MILITAR",
+            "gastos": {},
+            "total_gastos": 0.0
+        },
+        {
+            "funcionario_nombre": f"Funcionario Test {datetime.now().strftime('%H%M%S')}",
+            "funcionario_policial": f"Sargento Funcionario Test {datetime.now().strftime('%H%M%S')}",
+            "no_expediente": f"EXP-{datetime.now().strftime('%H%M%S')}-2024",
+            "miembro_amputado": "ACCIDENTE DE TRANSITO EN MOTOCICLETA Y VEHÍCULO (C/D)",
+            "hospital_traslado": "HOSPITAL Y CLINICA SAN JORGE",
+            "gastos": {"medicamentos": 500.0, "consultas": 300.0},
+            "total_gastos": 800.0
+        }
+    ]
+    
+    created_funcionarios = []
+    for funcionario in test_funcionarios:
+        success, response = tester.test_create_funcionario_lesionado(funcionario)
+        if success:
+            created_funcionarios.append(response)
+        else:
+            print(f"❌ Failed to create funcionario lesionado: {funcionario['funcionario_nombre']}")
+    
+    # Test 6.3: Get funcionarios lesionados (with data)
+    print("\n📋 TEST 6.3: Get Funcionarios Lesionados (After Creation)")
+    tester.test_get_funcionarios_lesionados_with_data()
+    
+    # Test 6.4: Update funcionario lesionado
+    if created_funcionarios:
+        print("\n📋 TEST 6.4: Update Funcionario Lesionado")
+        funcionario_to_update = created_funcionarios[0]
+        updates = {
+            "total_gastos": 1500.0,
+            "gastos": {"medicamentos": 800.0, "consultas": 400.0, "examenes": 300.0}
+        }
+        tester.test_update_funcionario_lesionado(funcionario_to_update['id'], updates)
+    
+    # Test 7: Status checks (original functionality)
+    print("\n📋 TEST 7: Status Checks")
     tester.test_get_status_checks_empty()
     
     test_clients = [
@@ -369,8 +422,14 @@ def main():
     
     tester.test_get_status_checks_with_data()
     
-    # Test 7: Cleanup - Delete created patients
-    print("\n📋 TEST 7: Cleanup - Delete Test Patients")
+    # Test 8: Cleanup - Delete created data
+    print("\n📋 TEST 8: Cleanup - Delete Test Data")
+    
+    # Delete funcionarios lesionados
+    for funcionario in created_funcionarios:
+        tester.test_delete_funcionario_lesionado(funcionario['id'])
+    
+    # Delete patients
     for patient in created_patients:
         tester.test_delete_paciente(patient['id'])
     
