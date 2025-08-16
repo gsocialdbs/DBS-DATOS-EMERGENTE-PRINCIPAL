@@ -568,8 +568,116 @@ def main():
         }
         tester.test_update_funcionario_lesionado(funcionario_to_update['id'], updates)
     
-    # Test 7: Status checks (original functionality)
-    print("\n📋 TEST 7: Status Checks")
+    # Test 7: FALLECIDOS - Main focus of this test
+    print("\n📋 TEST 7: FALLECIDOS (MAIN FOCUS)")
+    print("=" * 60)
+    
+    # Test 7.1: Get fallecidos (empty)
+    print("\n📋 TEST 7.1: Get Fallecidos (Initial)")
+    tester.test_get_fallecidos_empty()
+    
+    # Test 7.2: Create fallecidos - Testing the exact scenario from the request
+    print("\n📋 TEST 7.2: Create Fallecidos")
+    test_fallecidos = [
+        {
+            "policia_fallecido": "Test Policía Fallecido",
+            "no_expediente": "EXP-FALL-001",
+            "causa_muerte": "Accidente en servicio",
+            "fecha_muerte": date.today().isoformat(),
+            "lugar_muerte": "Hospital Nacional",
+            "beneficiarios": "Esposa e hijos",
+            "documentos_adjuntos": []
+        },
+        {
+            "policia_fallecido": f"Policía Test {datetime.now().strftime('%H%M%S')}",
+            "no_expediente": f"EXP-FALL-{datetime.now().strftime('%H%M%S')}",
+            "causa_muerte": "Enfermedad profesional",
+            "fecha_muerte": date.today().isoformat(),
+            "lugar_muerte": "Hospital Militar",
+            "beneficiarios": "Familia directa",
+            "documentos_adjuntos": ["acta_defuncion.pdf", "certificado_medico.pdf"]
+        }
+    ]
+    
+    created_fallecidos = []
+    for fallecido in test_fallecidos:
+        success, response = tester.test_create_fallecido(fallecido)
+        if success:
+            created_fallecidos.append(response)
+        else:
+            print(f"❌ Failed to create fallecido: {fallecido['policia_fallecido']}")
+    
+    # Test 7.3: Get fallecidos (with data)
+    print("\n📋 TEST 7.3: Get Fallecidos (After Creation)")
+    tester.test_get_fallecidos_with_data()
+    
+    # Test 7.4: Update fallecido
+    if created_fallecidos:
+        print("\n📋 TEST 7.4: Update Fallecido")
+        fallecido_to_update = created_fallecidos[0]
+        updates = {
+            "beneficiarios": "Esposa, 2 hijos menores y madre",
+            "documentos_adjuntos": ["acta_defuncion.pdf", "certificado_medico.pdf", "testamento.pdf"]
+        }
+        tester.test_update_fallecido(fallecido_to_update['id'], updates)
+    
+    # Test 8: INDEMNIZACIONES - Main focus of this test
+    print("\n📋 TEST 8: INDEMNIZACIONES (MAIN FOCUS)")
+    print("=" * 60)
+    
+    # Test 8.1: Get indemnizaciones (empty)
+    print("\n📋 TEST 8.1: Get Indemnizaciones (Initial)")
+    tester.test_get_indemnizaciones_empty()
+    
+    # Test 8.2: Create indemnizaciones - Testing the exact scenario from the request
+    print("\n📋 TEST 8.2: Create Indemnizaciones")
+    test_indemnizaciones = [
+        {
+            "funcionario_policial": "Test Funcionario Indemnización",
+            "no_expediente": "EXP-IND-001",
+            "estado_expediente": "En proceso",
+            "suma_pagar": 50000.0,
+            "causa_indemnizacion": "Lesión en servicio",
+            "fecha_solicitud": date.today().isoformat(),
+            "observaciones": "Indemnización por lesión laboral"
+        },
+        {
+            "funcionario_policial": f"Funcionario Indemnización Test {datetime.now().strftime('%H%M%S')}",
+            "no_expediente": f"EXP-IND-{datetime.now().strftime('%H%M%S')}",
+            "estado_expediente": "Aprobado",
+            "suma_pagar": 75000.0,
+            "causa_indemnizacion": "Accidente de trabajo",
+            "fecha_solicitud": date.today().isoformat(),
+            "fecha_pago": date.today().isoformat(),
+            "observaciones": "Pago por incapacidad permanente"
+        }
+    ]
+    
+    created_indemnizaciones = []
+    for indemnizacion in test_indemnizaciones:
+        success, response = tester.test_create_indemnizacion(indemnizacion)
+        if success:
+            created_indemnizaciones.append(response)
+        else:
+            print(f"❌ Failed to create indemnizacion: {indemnizacion['funcionario_policial']}")
+    
+    # Test 8.3: Get indemnizaciones (with data)
+    print("\n📋 TEST 8.3: Get Indemnizaciones (After Creation)")
+    tester.test_get_indemnizaciones_with_data()
+    
+    # Test 8.4: Update indemnizacion
+    if created_indemnizaciones:
+        print("\n📋 TEST 8.4: Update Indemnizacion")
+        indemnizacion_to_update = created_indemnizaciones[0]
+        updates = {
+            "estado_expediente": "Pagado",
+            "fecha_pago": date.today().isoformat(),
+            "observaciones": "Indemnización por lesión laboral - PAGADO"
+        }
+        tester.test_update_indemnizacion(indemnizacion_to_update['id'], updates)
+    
+    # Test 9: Status checks (original functionality)
+    print("\n📋 TEST 9: Status Checks")
     tester.test_get_status_checks_empty()
     
     test_clients = [
@@ -584,8 +692,16 @@ def main():
     
     tester.test_get_status_checks_with_data()
     
-    # Test 8: Cleanup - Delete created data
-    print("\n📋 TEST 8: Cleanup - Delete Test Data")
+    # Test 10: Cleanup - Delete created data
+    print("\n📋 TEST 10: Cleanup - Delete Test Data")
+    
+    # Delete indemnizaciones
+    for indemnizacion in created_indemnizaciones:
+        tester.test_delete_indemnizacion(indemnizacion['id'])
+    
+    # Delete fallecidos
+    for fallecido in created_fallecidos:
+        tester.test_delete_fallecido(fallecido['id'])
     
     # Delete funcionarios lesionados
     for funcionario in created_funcionarios:
