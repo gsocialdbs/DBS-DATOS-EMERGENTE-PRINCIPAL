@@ -19,10 +19,17 @@ export const FallecidoReportes = ({ fallecidos = [] }) => {
     const labels = Object.keys(causasMuerteData);
     const data = Object.values(causasMuerteData);
     
+    if (data.length === 0 || Math.max(...data) === 0) {
+      alert("No hay datos suficientes para generar la gráfica.");
+      return;
+    }
+    
     // Simulación de una gráfica simple en texto
     let chartString = "Gráfica de Causas de Muerte:\n\n";
     labels.forEach((label, index) => {
-      chartString += `${label}: ${data[index]} (${'█'.repeat(Math.floor(data[index] / Math.max(...data) * 20))})\n`; // Escala a 20 caracteres
+      const count = data[index] || 0;
+      const barLength = Math.floor(count / Math.max(...data) * 20);
+      chartString += `${label}: ${count} (${'█'.repeat(barLength)}) \n`;
     });
     alert(chartString);
   };
