@@ -32,7 +32,10 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
   };
 
   const handleVisitaImageChange = (e) => {
-    setNewVisita(prev => ({ ...prev, imagenesVisita: [...prev.imagenesVisita, ...Array.from(e.target.files)] }));
+    setNewVisita(prev => ({ 
+      ...prev, 
+      imagenesVisita: [...(prev.imagenesVisita || []), ...Array.from(e.target.files)] 
+    }));
   };
 
   const addVisita = () => {
