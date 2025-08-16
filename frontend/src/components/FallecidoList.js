@@ -5,6 +5,10 @@ export const FallecidoList = ({ fallecidos, onDeleteFallecido }) => {
   const [filterCausaMuerte, setFilterCausaMuerte] = useState('todos');
   const [filterYear, setFilterYear] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFallecido, setSelectedFallecido] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({});
 
   const causasMuerte = [
     "HOMICIDIO (Cumplimiento del deber)", "HOMICIDIO (Fin de semana)", "HOMICIDIO (Franquicia)",
