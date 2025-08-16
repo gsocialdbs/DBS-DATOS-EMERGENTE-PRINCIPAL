@@ -1,12 +1,18 @@
 import React from 'react';
 import { generateReport, printContent, downloadExcel } from '../utils/helpers';
 
-export const FuncionarioLesionadoReportes = ({ funcionariosLesionados }) => {
+export const FuncionarioLesionadoReportes = ({ funcionariosLesionados = [] }) => {
   const totalFuncionarios = funcionariosLesionados.length;
-  const totalGastosGlobal = funcionariosLesionados.reduce((sum, f) => sum + f.totalGastos, 0);
+  const totalGastosGlobal = funcionariosLesionados.reduce((sum, f) => {
+    const gastos = f.totalGastos || f.total_gastos || 0;
+    return sum + (typeof gastos === 'number' ? gastos : 0);
+  }, 0);
 
   const gastosPorHospital = funcionariosLesionados.reduce((acc, curr) => {
-    acc[curr.hospitalTraslado] = (acc[curr.hospitalTraslado] || 0) + curr.totalGastos;
+    const hospital = curr.hospitalTraslado || curr.hospital_traslado || 'Hospital no especificado';
+    const gastos = curr.totalGastos || curr.total_gastos || 0;
+    const gastosNum = typeof gastos === 'number' ? gastos : 0;
+    acc[hospital] = (acc[hospital] || 0) + gastosNum;
     return acc;
   }, {});
 
