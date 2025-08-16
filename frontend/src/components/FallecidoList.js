@@ -49,6 +49,80 @@ export const FallecidoList = ({ fallecidos, onDeleteFallecido }) => {
     }
   };
 
+  const showDetalles = (fallecido) => {
+    setSelectedFallecido(fallecido);
+    setEditData({
+      policiaFallecido: fallecido.policiaFallecido || fallecido.policia_fallecido || '',
+      noExpediente: fallecido.noExpediente || fallecido.no_expediente || '',
+      causaMuerte: fallecido.causaMuerte || fallecido.causa_muerte || '',
+      fechaMuerte: fallecido.fechaMuerte || fallecido.fecha_muerte || '',
+      lugarMuerte: fallecido.lugarMuerte || fallecido.lugar_muerte || '',
+      beneficiarios: fallecido.beneficiarios || '',
+      estadoExpediente: fallecido.estadoExpediente || fallecido.estado_expediente || 'pendiente'
+    });
+    setEditMode(false);
+    setShowModal(true);
+  };
+
+  const enableEditMode = () => {
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    // Restaurar datos originales
+    setEditData({
+      policiaFallecido: selectedFallecido.policiaFallecido || selectedFallecido.policia_fallecido || '',
+      noExpediente: selectedFallecido.noExpediente || selectedFallecido.no_expediente || '',
+      causaMuerte: selectedFallecido.causaMuerte || selectedFallecido.causa_muerte || '',
+      fechaMuerte: selectedFallecido.fechaMuerte || selectedFallecido.fecha_muerte || '',
+      lugarMuerte: selectedFallecido.lugarMuerte || selectedFallecido.lugar_muerte || '',
+      beneficiarios: selectedFallecido.beneficiarios || '',
+      estadoExpediente: selectedFallecido.estadoExpediente || selectedFallecido.estado_expediente || 'pendiente'
+    });
+  };
+
+  const saveChanges = async () => {
+    try {
+      const updatedData = {
+        policia_fallecido: editData.policiaFallecido,
+        no_expediente: editData.noExpediente,
+        causa_muerte: editData.causaMuerte,
+        fecha_muerte: editData.fechaMuerte,
+        lugar_muerte: editData.lugarMuerte,
+        beneficiarios: editData.beneficiarios,
+        estado_expediente: editData.estadoExpediente
+      };
+
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/fallecidos/${selectedFallecido.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (response.ok) {
+        alert('✅ Información actualizada exitosamente');
+        setEditMode(false);
+        closeModal();
+        window.location.reload(); // Refrescar para mostrar cambios
+      } else {
+        alert('❌ Error al actualizar la información');
+      }
+    } catch (error) {
+      console.error('Error al guardar cambios:', error);
+      alert('❌ Error al guardar los cambios');
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedFallecido(null);
+    setEditMode(false);
+    setEditData({});
+  };
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Listado de Siniestros (Fallecidos)</h2>
