@@ -94,7 +94,7 @@ export const FuncionarioLesionadoReportes = ({ funcionariosLesionados = [] }) =>
               {Object.entries(gastosPorHospital).map(([hospital, total]) => (
                 <tr key={hospital}>
                   <td className="table-cell py-2">{hospital}</td>
-                  <td className="table-cell py-2">L. {total.toFixed(2)}</td>
+                  <td className="table-cell py-2">L. {(typeof total === 'number' ? total : 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
