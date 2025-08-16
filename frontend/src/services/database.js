@@ -6,8 +6,13 @@ const API = `${BACKEND_URL}/api`;
 // Helper function para manejar respuestas HTTP
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    try {
+      const errorData = await response.json();
+      const errorMessage = errorData.detail || errorData.message || `HTTP error! status: ${response.status}`;
+      throw new Error(errorMessage);
+    } catch (parseError) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   }
   return await response.json();
 };
