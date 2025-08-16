@@ -62,11 +62,11 @@ export const IndemnizacionList = ({ indemnizaciones, onDeleteIndemnizacion, onEd
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredIndemnizaciones.map(indemnizacion => (
               <tr key={indemnizacion.id} className="hover:bg-gray-50 transition-colors">
-                <td className="table-cell font-medium text-gray-900">{indemnizacion.funcionarioPolicial}</td>
-                <td className="table-cell text-gray-700">{indemnizacion.grado}</td>
-                <td className="table-cell text-gray-700">{indemnizacion.causaIndemnizacion}</td>
-                <td className="table-cell text-gray-700">{indemnizacion.miembroAmputado || 'N/A'}</td>
-                <td className="table-cell text-gray-700">L. {indemnizacion.sumaPagar}</td>
+                <td className="table-cell font-medium text-gray-900">{indemnizacion.funcionarioPolicial || indemnizacion.funcionario_policial || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{indemnizacion.grado || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{indemnizacion.causaIndemnizacion || indemnizacion.causa_indemnizacion || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{indemnizacion.miembroAmputado || indemnizacion.miembro_amputado || 'N/A'}</td>
+                <td className="table-cell text-gray-700">L. {(indemnizacion.sumaPagar || indemnizacion.suma_pagar || 0).toFixed(2)}</td>
                 <td className="table-cell">
                   <button
                     onClick={() => alert(JSON.stringify(indemnizacion, null, 2))} // Mostrar detalles completos
