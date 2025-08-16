@@ -160,7 +160,7 @@ export const funcionariosService = {
         no_expediente: funcionario.expediente || funcionario.no_expediente || '',
         miembro_amputado: funcionario.tipoIncidente || funcionario.diagnostico || funcionario.miembro_amputado || '',
         hospital_traslado: funcionario.hospitalTraslado || funcionario.hospital_traslado || '',
-        gastos: funcionario.gastos || null,
+        gastos: (funcionario.gastos && Array.isArray(funcionario.gastos) && funcionario.gastos.length === 0) ? {} : (funcionario.gastos || {}),
         total_gastos: Number(funcionario.totalGastos) || Number(funcionario.total_gastos) || 0
       };
       
