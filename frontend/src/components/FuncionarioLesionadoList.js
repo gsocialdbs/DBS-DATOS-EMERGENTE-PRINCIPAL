@@ -14,12 +14,81 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
 
   const showDetalles = (funcionario) => {
     setSelectedFuncionario(funcionario);
+    setEditData({
+      nombre: funcionario.nombre || funcionario.funcionario_nombre || '',
+      dni: funcionario.dni || funcionario.no_expediente || '',
+      grado: funcionario.grado || funcionario.funcionario_policial || '',
+      sexo: funcionario.sexo || '',
+      tipoIncidente: funcionario.tipoIncidente || funcionario.miembro_amputado || '',
+      hospitalTraslado: funcionario.hospitalTraslado || funcionario.hospital_traslado || '',
+      diagnostico: funcionario.diagnostico || '',
+      totalGastos: funcionario.totalGastos || funcionario.total_gastos || 0
+    });
+    setEditMode(false);
     setShowModal(true);
+  };
+
+  const enableEditMode = () => {
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    // Restaurar datos originales
+    setEditData({
+      nombre: selectedFuncionario.nombre || selectedFuncionario.funcionario_nombre || '',
+      dni: selectedFuncionario.dni || selectedFuncionario.no_expediente || '',
+      grado: selectedFuncionario.grado || selectedFuncionario.funcionario_policial || '',
+      sexo: selectedFuncionario.sexo || '',
+      tipoIncidente: selectedFuncionario.tipoIncidente || selectedFuncionario.miembro_amputado || '',
+      hospitalTraslado: selectedFuncionario.hospitalTraslado || selectedFuncionario.hospital_traslado || '',
+      diagnostico: selectedFuncionario.diagnostico || '',
+      totalGastos: selectedFuncionario.totalGastos || selectedFuncionario.total_gastos || 0
+    });
+  };
+
+  const saveChanges = async () => {
+    try {
+      // Aquí llamarías a tu API para actualizar el funcionario
+      const updatedData = {
+        funcionario_nombre: editData.nombre,
+        no_expediente: editData.dni,
+        funcionario_policial: editData.grado,
+        sexo: editData.sexo,
+        miembro_amputado: editData.tipoIncidente,
+        hospital_traslado: editData.hospitalTraslado,
+        diagnostico: editData.diagnostico,
+        total_gastos: parseFloat(editData.totalGastos) || 0
+      };
+
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funcionarios-lesionados/${selectedFuncionario.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (response.ok) {
+        alert('✅ Información actualizada exitosamente');
+        setEditMode(false);
+        closeModal();
+        // Aquí podrías llamar a una función para refrescar la lista
+        window.location.reload(); // Solución simple para refrescar
+      } else {
+        alert('❌ Error al actualizar la información');
+      }
+    } catch (error) {
+      console.error('Error al guardar cambios:', error);
+      alert('❌ Error al guardar los cambios');
+    }
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedFuncionario(null);
+    setEditMode(false);
+    setEditData({});
   };
   const tiposIncidente = [
     "HERIDO POR ARMA DE FUEGO (C/D)",
