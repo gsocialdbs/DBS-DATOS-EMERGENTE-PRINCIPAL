@@ -105,13 +105,13 @@ export const FallecidoList = ({ fallecidos, onDeleteFallecido }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredFallecidos.map(fallecido => (
               <tr key={fallecido.id} className="hover:bg-gray-50 transition-colors">
-                <td className="table-cell font-medium text-gray-900">{fallecido.noExpediente}</td>
-                <td className="table-cell text-gray-700">{fallecido.policiaFallecido}</td>
-                <td className="table-cell text-gray-700">{fallecido.causaMuerte}</td>
-                <td className="table-cell text-gray-700">{fallecido.nombreAseguradora}</td>
+                <td className="table-cell font-medium text-gray-900">{fallecido.noExpediente || fallecido.no_expediente || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{fallecido.policiaFallecido || fallecido.policia_fallecido || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{fallecido.causaMuerte || fallecido.causa_muerte || 'N/A'}</td>
+                <td className="table-cell text-gray-700">{fallecido.nombreAseguradora || fallecido.lugar_muerte || 'N/A'}</td>
                 <td className="table-cell">
-                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(fallecido.estadoExpediente)}`}>
-                    {fallecido.estadoExpediente.replace(/_/g, ' ')}
+                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(fallecido.estadoExpediente || fallecido.estado_expediente)}`}>
+                    {(fallecido.estadoExpediente || fallecido.estado_expediente || 'pendiente').replace(/_/g, ' ')}
                   </span>
                 </td>
                 <td className="table-cell">
