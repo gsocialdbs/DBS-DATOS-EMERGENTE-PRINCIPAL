@@ -113,7 +113,7 @@ export const FuncionarioLesionadoList = ({ funcionariosLesionados, onDeleteFunci
                 <td className="table-cell text-gray-700">L. {(funcionario.totalGastos || funcionario.total_gastos || 0).toFixed(2)}</td>
                 <td className="table-cell">
                   <button
-                    onClick={() => alert(JSON.stringify(funcionario, null, 2))} // Mostrar detalles completos
+                    onClick={() => showDetalles(funcionario)}
                     className="text-blue-600 hover:text-blue-800 transition-colors mr-3 font-medium"
                   >
                     Ver Detalles
