@@ -12,9 +12,14 @@ export const IndemnizacionList = ({ indemnizaciones, onDeleteIndemnizacion, onEd
   ];
 
   const filteredIndemnizaciones = indemnizaciones.filter(indemnizacion => {
-    const matchesSearch = indemnizacion.funcionarioPolicial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          indemnizacion.grado.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTipoIncidente = filterTipoIncidente === 'todos' || indemnizacion.tipoIncidente === filterTipoIncidente;
+    // Proteger contra campos undefined/null con valores por defecto
+    const funcionarioPolicial = indemnizacion.funcionarioPolicial || indemnizacion.funcionario_policial || '';
+    const grado = indemnizacion.grado || '';
+    const tipoIncidente = indemnizacion.tipoIncidente || indemnizacion.causa_indemnizacion || '';
+    
+    const matchesSearch = funcionarioPolicial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          grado.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTipoIncidente = filterTipoIncidente === 'todos' || tipoIncidente === filterTipoIncidente;
     return matchesSearch && matchesTipoIncidente;
   });
 
