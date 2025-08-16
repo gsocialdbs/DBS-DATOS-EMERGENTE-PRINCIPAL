@@ -238,6 +238,168 @@ class BackendAPITester:
             print("❌ Failed to delete funcionario lesionado")
             return False
 
+    # ================== FALLECIDOS TESTS ==================
+    
+    def test_get_fallecidos_empty(self):
+        """Test GET /api/fallecidos endpoint"""
+        success, response = self.run_test(
+            "Get Fallecidos (Initial)",
+            "GET",
+            "api/fallecidos",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Fallecidos endpoint returned array with {len(response)} items")
+            return True
+        else:
+            print("❌ Fallecidos endpoint did not return array")
+            return False
+
+    def test_create_fallecido(self, fallecido_data):
+        """Test POST /api/fallecidos endpoint"""
+        success, response = self.run_test(
+            f"Create Fallecido: {fallecido_data['policia_fallecido']}",
+            "POST",
+            "api/fallecidos",
+            200,
+            data=fallecido_data
+        )
+        if success and isinstance(response, dict):
+            if 'id' in response and 'policia_fallecido' in response:
+                print(f"✅ Fallecido created with ID: {response['id']}")
+                return True, response
+            else:
+                print("❌ Fallecido response missing required fields")
+                return False, {}
+        return False, {}
+
+    def test_get_fallecidos_with_data(self):
+        """Test GET /api/fallecidos endpoint after creating data"""
+        success, response = self.run_test(
+            "Get Fallecidos (After Creation)",
+            "GET",
+            "api/fallecidos",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Fallecidos endpoint returned {len(response)} items")
+            return True
+        else:
+            print("❌ Fallecidos endpoint did not return expected data")
+            return False
+
+    def test_update_fallecido(self, fallecido_id, updates):
+        """Test PUT /api/fallecidos/{id} endpoint"""
+        success, response = self.run_test(
+            f"Update Fallecido: {fallecido_id}",
+            "PUT",
+            f"api/fallecidos/{fallecido_id}",
+            200,
+            data=updates
+        )
+        if success and isinstance(response, dict):
+            print(f"✅ Fallecido updated successfully")
+            return True, response
+        else:
+            print("❌ Failed to update fallecido")
+            return False, {}
+
+    def test_delete_fallecido(self, fallecido_id):
+        """Test DELETE /api/fallecidos/{id} endpoint"""
+        success, response = self.run_test(
+            f"Delete Fallecido: {fallecido_id}",
+            "DELETE",
+            f"api/fallecidos/{fallecido_id}",
+            200
+        )
+        if success:
+            print(f"✅ Fallecido deleted successfully")
+            return True
+        else:
+            print("❌ Failed to delete fallecido")
+            return False
+
+    # ================== INDEMNIZACIONES TESTS ==================
+    
+    def test_get_indemnizaciones_empty(self):
+        """Test GET /api/indemnizaciones endpoint"""
+        success, response = self.run_test(
+            "Get Indemnizaciones (Initial)",
+            "GET",
+            "api/indemnizaciones",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Indemnizaciones endpoint returned array with {len(response)} items")
+            return True
+        else:
+            print("❌ Indemnizaciones endpoint did not return array")
+            return False
+
+    def test_create_indemnizacion(self, indemnizacion_data):
+        """Test POST /api/indemnizaciones endpoint"""
+        success, response = self.run_test(
+            f"Create Indemnizacion: {indemnizacion_data['funcionario_policial']}",
+            "POST",
+            "api/indemnizaciones",
+            200,
+            data=indemnizacion_data
+        )
+        if success and isinstance(response, dict):
+            if 'id' in response and 'funcionario_policial' in response:
+                print(f"✅ Indemnizacion created with ID: {response['id']}")
+                return True, response
+            else:
+                print("❌ Indemnizacion response missing required fields")
+                return False, {}
+        return False, {}
+
+    def test_get_indemnizaciones_with_data(self):
+        """Test GET /api/indemnizaciones endpoint after creating data"""
+        success, response = self.run_test(
+            "Get Indemnizaciones (After Creation)",
+            "GET",
+            "api/indemnizaciones",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Indemnizaciones endpoint returned {len(response)} items")
+            return True
+        else:
+            print("❌ Indemnizaciones endpoint did not return expected data")
+            return False
+
+    def test_update_indemnizacion(self, indemnizacion_id, updates):
+        """Test PUT /api/indemnizaciones/{id} endpoint"""
+        success, response = self.run_test(
+            f"Update Indemnizacion: {indemnizacion_id}",
+            "PUT",
+            f"api/indemnizaciones/{indemnizacion_id}",
+            200,
+            data=updates
+        )
+        if success and isinstance(response, dict):
+            print(f"✅ Indemnizacion updated successfully")
+            return True, response
+        else:
+            print("❌ Failed to update indemnizacion")
+            return False, {}
+
+    def test_delete_indemnizacion(self, indemnizacion_id):
+        """Test DELETE /api/indemnizaciones/{id} endpoint"""
+        success, response = self.run_test(
+            f"Delete Indemnizacion: {indemnizacion_id}",
+            "DELETE",
+            f"api/indemnizaciones/{indemnizacion_id}",
+            200
+        )
+        if success:
+            print(f"✅ Indemnizacion deleted successfully")
+            return True
+        else:
+            print("❌ Failed to delete indemnizacion")
+            return False
+
     def test_get_status_checks_empty(self):
         """Test GET /api/status endpoint (should return empty array initially)"""
         success, response = self.run_test(
