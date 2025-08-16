@@ -153,15 +153,15 @@ export const funcionariosService = {
     try {
       console.log('Datos recibidos para funcionario:', funcionario);
       
-      // Mapear campos del formulario a campos de la API
+      // Mapear campos del formulario a campos de la API - asegurar que todos los campos requeridos estén presentes
       const funcionarioData = {
-        funcionario_nombre: funcionario.nombre || funcionario.funcionario_nombre,
-        funcionario_policial: funcionario.grado || funcionario.funcionario_policial || `${funcionario.grado || ''} ${funcionario.nombre || ''}`.trim(),
+        funcionario_nombre: funcionario.nombre || '',
+        funcionario_policial: `${funcionario.grado || ''} ${funcionario.nombre || ''}`.trim() || funcionario.grado || '',
         no_expediente: funcionario.expediente || funcionario.no_expediente || '',
         miembro_amputado: funcionario.tipoIncidente || funcionario.diagnostico || funcionario.miembro_amputado || '',
         hospital_traslado: funcionario.hospitalTraslado || funcionario.hospital_traslado || '',
-        gastos: funcionario.gastos || {},
-        total_gastos: funcionario.totalGastos || funcionario.total_gastos || 0
+        gastos: funcionario.gastos || null,
+        total_gastos: Number(funcionario.totalGastos) || Number(funcionario.total_gastos) || 0
       };
       
       console.log('Datos mapeados para API:', funcionarioData);
@@ -174,7 +174,13 @@ export const funcionariosService = {
         body: JSON.stringify(funcionarioData)
       });
       
-      const data = await handleResponse(response);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error text:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
       console.log('Funcionario creado exitosamente:', data);
       return data
     } catch (err) {
