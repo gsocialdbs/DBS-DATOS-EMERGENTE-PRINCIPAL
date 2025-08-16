@@ -151,11 +151,12 @@ export const funcionariosService = {
       // Mapear campos del formulario a campos de la API
       const funcionarioData = {
         funcionario_nombre: funcionario.nombre || funcionario.funcionario_nombre,
-        funcionario_policial: funcionario.funcionario || funcionario.funcionario_policial,
-        no_expediente: funcionario.expediente || funcionario.no_expediente,
-        miembro_amputado: funcionario.miembro || funcionario.miembro_amputado,
-        hospital_traslado: funcionario.hospital || funcionario.hospital_traslado,
-        total_gastos: funcionario.gastos ? parseFloat(funcionario.gastos) : (funcionario.total_gastos || 0)
+        funcionario_policial: funcionario.grado || funcionario.funcionario_policial || `${funcionario.grado || ''} ${funcionario.nombre || ''}`.trim(),
+        no_expediente: funcionario.expediente || funcionario.no_expediente || '',
+        miembro_amputado: funcionario.tipoIncidente || funcionario.diagnostico || funcionario.miembro_amputado || '',
+        hospital_traslado: funcionario.hospitalTraslado || funcionario.hospital_traslado || '',
+        gastos: funcionario.gastos || {},
+        total_gastos: funcionario.totalGastos || funcionario.total_gastos || 0
       };
       
       console.log('Datos mapeados para API:', funcionarioData);
@@ -173,7 +174,8 @@ export const funcionariosService = {
       return data
     } catch (err) {
       console.error('Error creando funcionario lesionado:', err)
-      throw err
+      console.error('Error details:', err.message)
+      throw new Error(`Error al crear funcionario lesionado: ${err.message}`)
     }
   },
 
