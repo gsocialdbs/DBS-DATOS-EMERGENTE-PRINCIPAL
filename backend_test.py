@@ -157,6 +157,87 @@ class BackendAPITester:
             print("❌ Failed to delete paciente")
             return False
 
+    # ================== FUNCIONARIOS LESIONADOS TESTS ==================
+    
+    def test_get_funcionarios_lesionados_empty(self):
+        """Test GET /api/funcionarios-lesionados endpoint"""
+        success, response = self.run_test(
+            "Get Funcionarios Lesionados (Initial)",
+            "GET",
+            "api/funcionarios-lesionados",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Funcionarios Lesionados endpoint returned array with {len(response)} items")
+            return True
+        else:
+            print("❌ Funcionarios Lesionados endpoint did not return array")
+            return False
+
+    def test_create_funcionario_lesionado(self, funcionario_data):
+        """Test POST /api/funcionarios-lesionados endpoint"""
+        success, response = self.run_test(
+            f"Create Funcionario Lesionado: {funcionario_data['funcionario_nombre']}",
+            "POST",
+            "api/funcionarios-lesionados",
+            200,
+            data=funcionario_data
+        )
+        if success and isinstance(response, dict):
+            if 'id' in response and 'funcionario_nombre' in response:
+                print(f"✅ Funcionario Lesionado created with ID: {response['id']}")
+                return True, response
+            else:
+                print("❌ Funcionario Lesionado response missing required fields")
+                return False, {}
+        return False, {}
+
+    def test_get_funcionarios_lesionados_with_data(self):
+        """Test GET /api/funcionarios-lesionados endpoint after creating data"""
+        success, response = self.run_test(
+            "Get Funcionarios Lesionados (After Creation)",
+            "GET",
+            "api/funcionarios-lesionados",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Funcionarios Lesionados endpoint returned {len(response)} items")
+            return True
+        else:
+            print("❌ Funcionarios Lesionados endpoint did not return expected data")
+            return False
+
+    def test_update_funcionario_lesionado(self, funcionario_id, updates):
+        """Test PUT /api/funcionarios-lesionados/{id} endpoint"""
+        success, response = self.run_test(
+            f"Update Funcionario Lesionado: {funcionario_id}",
+            "PUT",
+            f"api/funcionarios-lesionados/{funcionario_id}",
+            200,
+            data=updates
+        )
+        if success and isinstance(response, dict):
+            print(f"✅ Funcionario Lesionado updated successfully")
+            return True, response
+        else:
+            print("❌ Failed to update funcionario lesionado")
+            return False, {}
+
+    def test_delete_funcionario_lesionado(self, funcionario_id):
+        """Test DELETE /api/funcionarios-lesionados/{id} endpoint"""
+        success, response = self.run_test(
+            f"Delete Funcionario Lesionado: {funcionario_id}",
+            "DELETE",
+            f"api/funcionarios-lesionados/{funcionario_id}",
+            200
+        )
+        if success:
+            print(f"✅ Funcionario Lesionado deleted successfully")
+            return True
+        else:
+            print("❌ Failed to delete funcionario lesionado")
+            return False
+
     def test_get_status_checks_empty(self):
         """Test GET /api/status endpoint (should return empty array initially)"""
         success, response = self.run_test(
