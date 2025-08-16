@@ -194,7 +194,7 @@ export const FallecidoList = ({ fallecidos, onDeleteFallecido }) => {
                 </td>
                 <td className="table-cell">
                   <button
-                    onClick={() => alert(JSON.stringify(fallecido, null, 2))} // Mostrar detalles completos
+                    onClick={() => showDetalles(fallecido)}
                     className="text-blue-600 hover:text-blue-800 transition-colors mr-3 font-medium"
                   >
                     Ver Detalles
