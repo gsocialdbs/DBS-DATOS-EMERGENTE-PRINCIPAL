@@ -207,7 +207,7 @@ class BackendAPITester:
             return False
 
 def main():
-    print("🚀 Starting Backend API Testing...")
+    print("🚀 Starting DBS Backend API Testing...")
     print("=" * 50)
     
     # Setup
@@ -217,12 +217,61 @@ def main():
     print("\n📋 TEST 1: Root API Endpoint")
     tester.test_root_endpoint()
     
-    # Test 2: Get status checks (empty)
-    print("\n📋 TEST 2: Get Status Checks (Initial)")
+    # Test 2: Get pacientes (empty)
+    print("\n📋 TEST 2: Get Pacientes (Initial)")
+    tester.test_get_pacientes_empty()
+    
+    # Test 3: Create pacientes with visits data
+    print("\n📋 TEST 3: Create Pacientes with Visits")
+    test_patients = [
+        {
+            "nombre": f"Juan Pérez Test {datetime.now().strftime('%H%M%S')}",
+            "dni": f"12345678{datetime.now().strftime('%S')}",
+            "grado": "Sargento",
+            "edad": 35,
+            "sexo": "masculino",
+            "diagnostico": "Fractura de pierna",
+            "fecha_ingreso": date.today().isoformat(),
+            "status": "interno"
+        },
+        {
+            "nombre": f"María García Test {datetime.now().strftime('%H%M%S')}",
+            "dni": f"87654321{datetime.now().strftime('%S')}",
+            "grado": "Cabo",
+            "edad": 28,
+            "sexo": "femenino",
+            "diagnostico": "Contusión múltiple",
+            "fecha_ingreso": date.today().isoformat(),
+            "status": "interno"
+        }
+    ]
+    
+    created_patients = []
+    for patient in test_patients:
+        success, response = tester.test_create_paciente(patient)
+        if success:
+            created_patients.append(response)
+        else:
+            print(f"❌ Failed to create patient: {patient['nombre']}")
+    
+    # Test 4: Get pacientes (with data)
+    print("\n📋 TEST 4: Get Pacientes (After Creation)")
+    tester.test_get_pacientes_with_data()
+    
+    # Test 5: Update paciente (simulate adding visits)
+    if created_patients:
+        print("\n📋 TEST 5: Update Paciente (Add Visits)")
+        patient_to_update = created_patients[0]
+        updates = {
+            "diagnostico": "Fractura de pierna - En recuperación",
+            "status": "interno"
+        }
+        tester.test_update_paciente(patient_to_update['id'], updates)
+    
+    # Test 6: Status checks (original functionality)
+    print("\n📋 TEST 6: Status Checks")
     tester.test_get_status_checks_empty()
     
-    # Test 3: Create status checks
-    print("\n📋 TEST 3: Create Status Checks")
     test_clients = [
         f"TestClient_{datetime.now().strftime('%H%M%S')}_1",
         f"TestClient_{datetime.now().strftime('%H%M%S')}_2"
@@ -233,9 +282,12 @@ def main():
         if not success:
             print(f"❌ Failed to create status check for {client}")
     
-    # Test 4: Get status checks (with data)
-    print("\n📋 TEST 4: Get Status Checks (After Creation)")
     tester.test_get_status_checks_with_data()
+    
+    # Test 7: Cleanup - Delete created patients
+    print("\n📋 TEST 7: Cleanup - Delete Test Patients")
+    for patient in created_patients:
+        tester.test_delete_paciente(patient['id'])
     
     # Print final results
     print("\n" + "=" * 50)
