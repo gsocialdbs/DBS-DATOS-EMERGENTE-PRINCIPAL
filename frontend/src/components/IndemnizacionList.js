@@ -150,13 +150,13 @@ export const IndemnizacionList = ({ indemnizaciones, onDeleteIndemnizacion, onEd
                 <td className="table-cell text-gray-700">L. {(indemnizacion.sumaPagar || indemnizacion.suma_pagar || 0).toFixed(2)}</td>
                 <td className="table-cell">
                   <button
-                    onClick={() => alert(JSON.stringify(indemnizacion, null, 2))} // Mostrar detalles completos
+                    onClick={() => showDetalles(indemnizacion)}
                     className="text-blue-600 hover:text-blue-800 transition-colors mr-3 font-medium"
                   >
                     Ver Detalles
                   </button>
                   <button
-                    onClick={() => onEditIndemnizacion(indemnizacion)}
+                    onClick={() => showDetalles(indemnizacion)}
                     className="text-indigo-600 hover:text-indigo-800 transition-colors mr-3 font-medium"
                   >
                     Editar
