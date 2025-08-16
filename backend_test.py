@@ -63,11 +63,94 @@ class BackendAPITester:
             "api/",
             200
         )
-        if success and isinstance(response, dict) and response.get('message') == 'Hello World':
-            print("✅ Root endpoint returned correct message")
+        if success and isinstance(response, dict) and 'DBS' in str(response.get('message', '')):
+            print("✅ Root endpoint returned correct DBS message")
             return True
         else:
-            print("❌ Root endpoint did not return expected message")
+            print("❌ Root endpoint did not return expected DBS message")
+            return False
+
+    def test_get_pacientes_empty(self):
+        """Test GET /api/pacientes endpoint"""
+        success, response = self.run_test(
+            "Get Pacientes (Initial)",
+            "GET",
+            "api/pacientes",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Pacientes endpoint returned array with {len(response)} items")
+            return True
+        else:
+            print("❌ Pacientes endpoint did not return array")
+            return False
+
+    def test_create_paciente(self, patient_data):
+        """Test POST /api/pacientes endpoint"""
+        success, response = self.run_test(
+            f"Create Paciente: {patient_data['nombre']}",
+            "POST",
+            "api/pacientes",
+            200,
+            data=patient_data
+        )
+        if success and isinstance(response, dict):
+            if 'id' in response and 'nombre' in response:
+                self.created_patient_ids.append(response['id'])
+                print(f"✅ Paciente created with ID: {response['id']}")
+                return True, response
+            else:
+                print("❌ Paciente response missing required fields")
+                return False, {}
+        return False, {}
+
+    def test_get_pacientes_with_data(self):
+        """Test GET /api/pacientes endpoint after creating data"""
+        success, response = self.run_test(
+            "Get Pacientes (After Creation)",
+            "GET",
+            "api/pacientes",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"✅ Pacientes endpoint returned {len(response)} items")
+            for item in response:
+                if item['id'] in self.created_patient_ids:
+                    print(f"✅ Found created paciente: {item['nombre']}")
+            return True
+        else:
+            print("❌ Pacientes endpoint did not return expected data")
+            return False
+
+    def test_update_paciente(self, patient_id, updates):
+        """Test PUT /api/pacientes/{id} endpoint"""
+        success, response = self.run_test(
+            f"Update Paciente: {patient_id}",
+            "PUT",
+            f"api/pacientes/{patient_id}",
+            200,
+            data=updates
+        )
+        if success and isinstance(response, dict):
+            print(f"✅ Paciente updated successfully")
+            return True, response
+        else:
+            print("❌ Failed to update paciente")
+            return False, {}
+
+    def test_delete_paciente(self, patient_id):
+        """Test DELETE /api/pacientes/{id} endpoint"""
+        success, response = self.run_test(
+            f"Delete Paciente: {patient_id}",
+            "DELETE",
+            f"api/pacientes/{patient_id}",
+            200
+        )
+        if success:
+            print(f"✅ Paciente deleted successfully")
+            return True
+        else:
+            print("❌ Failed to delete paciente")
             return False
 
     def test_get_status_checks_empty(self):
