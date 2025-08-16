@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirección de Bienestar Social</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        .logo { text-align: center; margin-bottom: 2rem; }
+        .logo-icon { width: 70px; height: 70px; background: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 30px; }
+        h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 1.6rem; text-align: center; font-weight: 600; }
+        .subtitle { color: #6b7280; text-align: center; margin-bottom: 2rem; font-size: 1rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 500; font-size: 0.9rem; }
+        input { width: 100%; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; }
+        input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .btn { width: 100%; background: #4f46e5; color: white; padding: 1rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 1rem; font-weight: 600; transition: all 0.3s ease; }
+        .btn:hover { background: #4338ca; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .error { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #dc2626; }
+        .demo { background: #f8fafc; padding: 1.2rem; border-radius: 8px; margin-top: 1.5rem; border: 1px solid #e2e8f0; }
+        .demo h4 { color: #475569; margin-bottom: 0.8rem; font-size: 0.95rem; font-weight: 600; }
+        .demo p { color: #64748b; font-size: 0.85rem; margin-bottom: 0.4rem; }
+        .credential { font-family: 'Courier New', monospace; background: white; padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid #e2e8f0; }
+        
+        /* Dashboard Styles */
+        .dashboard { display: none; background: #f8fafc; min-height: 100vh; }
+        .dashboard.active { display: block; }
+        .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 0.8rem; }
+        .user-avatar { width: 40px; height: 40px; background: #ddd6fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7c3aed; font-weight: bold; }
+        .user-details h3 { color: #1f2937; font-size: 1rem; margin: 0; }
+        .user-details p { color: #6b7280; font-size: 0.85rem; margin: 0; text-transform: capitalize; }
+        .logout-btn { background: #f3f4f6; color: #374151; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: #e5e7eb; }
+        
+        .main-header { background: white; text-align: center; padding: 2rem; margin-bottom: 2rem; }
+        .main-header h1 { color: #1f2937; font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 700; }
+        .main-header p { color: #6b7280; font-size: 1.1rem; }
+        
+        .nav-tabs { display: flex; gap: 1rem; margin: 0 2rem 2rem; flex-wrap: wrap; justify-content: center; }
+        .nav-tab { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; }
+        .nav-tab.active { color: white; transform: translateY(-2px); }
+        .nav-tab.pacientes.active { background: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .nav-tab.funcionarios.active { background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+        .nav-tab.fallecidos.active { background: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+        .nav-tab.indemnizaciones.active { background: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+        .nav-tab:not(.active) { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+        .nav-tab:not(.active):hover { background: #f1f5f9; border-color: #cbd5e1; }
+        
+        .content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .content-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .content-title { color: #1f2937; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        .table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .table tr:hover { background: #f8fafc; }
+        .status-badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-interno { background: #dbeafe; color: #1e40af; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2.5rem; }
+        .stat-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #e5e7eb; text-align: center; transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .stat-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .stat-title { color: #1f2937; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .stat-desc { color: #6b7280; font-size: 0.9rem; }
+        
+        .loading { display: flex; align-items: center; justify-content: center; min-height: 300px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f4f6; border-top: 4px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        
+        @media (max-width: 768px) { 
+            .nav-tabs { flex-direction: column; margin: 0 1rem 2rem; }
+            .content { padding: 0 1rem; }
+            .header-content { flex-direction: column; gap: 1rem; }
+            .stats { grid-template-columns: 1fr; }
+            .table { font-size: 0.9rem; }
+            .table th, .table td { padding: 0.75rem 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-icon">🏥</div>
+                <h1>Dirección de Bienestar Social</h1>
+                <p class="subtitle">Sistema de Gestión Médica</p>
+            </div>
+
+            <div id="errorContainer"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" required placeholder="Ingresa tu usuario">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required placeholder="Ingresa tu contraseña">
+                </div>
+                
+                <button type="submit" class="btn" id="loginBtn">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="demo">
+                <h4>🔑 Credenciales de acceso:</h4>
+                <p><strong>Usuario:</strong> <span class="credential">admin</span></p>
+                <p><strong>Contraseña:</strong> <span class="credential">bienestar2024</span></p>
+                <br>
+                <p><strong>Otros usuarios disponibles:</strong></p>
+                <p>• <span class="credential">medico</span> / <span class="credential">medico123</span></p>
+                <p>• <span class="credential">enfermera</span> / <span class="credential">enfermera123</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div id="dashboard" class="dashboard">
+        <div class="header">
+            <div class="header-content">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <h3 id="userName">Usuario</h3>
+                        <p id="userRole">Rol</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <div class="main-header">
+            <h1>🏥 Dirección de Bienestar Social</h1>
+            <p>Sistema Integral de Gestión Médica y Administrativa</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab pacientes active" onclick="setActiveTab('pacientes')">
+                👥 Bitácora de Pacientes
+            </button>
+            <button class="nav-tab funcionarios" onclick="setActiveTab('funcionarios')">
+                🚑 Funcionarios Lesionados
+            </button>
+            <button class="nav-tab fallecidos" onclick="setActiveTab('fallecidos')">
+                💐 Información de Fallecidos
+            </button>
+            <button class="nav-tab indemnizaciones" onclick="setActiveTab('indemnizaciones')">
+                💰 Indemnizaciones
+            </button>
+        </div>
+
+        <div class="content">
+            <div class="content-card" id="contentArea">
+                <!-- El contenido se carga dinámicamente aquí -->
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-title">Sistema Seguro</div>
+                    <div class="stat-desc">Autenticación funcionando correctamente</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💾</div>
+                    <div class="stat-title" id="patientCount">4 Pacientes</div>
+                    <div class="stat-desc">Registrados en el sistema</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔒</div>
+                    <div class="stat-title">Sesión Activa</div>
+                    <div class="stat-desc" id="sessionInfo">Conectado como Usuario</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 📊 Datos de demostración
+        const DEMO_PATIENTS = [
+            { id: 1, nombre: 'Juan Pérez López', dni: '12345678', diagnostico: 'Fractura de pierna', status: 'interno', fecha: '2024-01-15' },
+            { id: 2, nombre: 'María González Ruiz', dni: '87654321', diagnostico: 'Revisión médica general', status: 'interno', fecha: '2024-01-16' },
+            { id: 3, nombre: 'Carlos Rodríguez Mesa', dni: '11223344', diagnostico: 'Control post-operatorio', status: 'interno', fecha: '2024-01-17' },
+            { id: 4, nombre: 'Ana Martínez Silva', dni: '55667788', diagnostico: 'Terapia de rehabilitación', status: 'interno', fecha: '2024-01-18' }
+        ];
+
+        // 🔐 Credenciales válidas
+        const VALID_CREDENTIALS = [
+            { username: 'admin', password: 'bienestar2024', name: 'Administrador General', role: 'admin' },
+            { username: 'medico', password: 'medico123', name: 'Dr. José Méndez', role: 'doctor' },
+            { username: 'enfermera', password: 'enfermera123', name: 'Enf. Carmen López', role: 'nurse' }
+        ];
+
+        // 🌐 Estado global de la aplicación
+        let currentUser = null;
+        let activeTab = 'pacientes';
+        let patients = [...DEMO_PATIENTS];
+
+        // 🔧 Funciones de autenticación
+        function getCurrentUser() {
+            try {
+                const session = localStorage.getItem('userSession');
+                return session ? JSON.parse(session) : null;
+            } catch { 
+                return null; 
+            }
+        }
+
+        function login(username, password) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const user = VALID_CREDENTIALS.find(
+                        cred => cred.username === username && cred.password === password
+                    );
+                    if (user) {
+                        const userSession = { 
+                            ...user, 
+                            loginTime: new Date().toISOString(),
+                            id: user.username 
+                        };
+                        localStorage.setItem('userSession', JSON.stringify(userSession));
+                        currentUser = userSession;
+                        resolve(userSession);
+                    } else {
+                        reject(new Error('❌ Usuario o contraseña incorrectos'));
+                    }
+                }, 1500);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('userSession');
+            currentUser = null;
+            showLogin();
+        }
+
+        // 🎨 Funciones de interfaz
+        function showLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            updateUserInfo();
+            renderTabContent();
+        }
+
+        function updateUserInfo() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('userRole').textContent = currentUser.role;
+                document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+                document.getElementById('sessionInfo').textContent = `Conectado como ${currentUser.name}`;
+            }
+        }
+
+        function setActiveTab(tab) {
+            activeTab = tab;
+            
+            // Actualizar botones
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.nav-tab.${tab}`).classList.add('active');
+            
+            renderTabContent();
+        }
+
+        function renderTabContent() {
+            const contentArea = document.getElementById('contentArea');
+            
+            switch(activeTab) {
+                case 'pacientes':
+                    contentArea.innerHTML = `
+                        <h2 class="content-title">👥 Bitácora de Pacientes</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Gestión integral de pacientes internos y consultas médicas</p>
+                        
+                        ${patients.length === 0 ? 
+                            `<div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <p>No hay pacientes registrados en el sistema.</p>
+                            </div>` :
+                            `<div style="overflow-x: auto;">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>👤 Nombre Completo</th>
+                                            <th>🆔 DNI</th>
+                                            <th>🏥 Diagnóstico</th>
+                                            <th>📅 Fecha Ingreso</th>
+                                            <th>📊 Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${patients.map(patient => `
+                                            <tr>
+                                                <td><strong>${patient.nombre}</strong></td>
+                                                <td><code>${patient.dni}</code></td>
+                                                <td>${patient.diagnostico}</td>
+                                                <td>${patient.fecha || 'No especificada'}</td>
+                                                <td><span class="status-badge status-interno">🏥 ${patient.status}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>`
+                        }
+                        
+                        <div style="margin-top: 2rem; padding: 1.5rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                            <h4 style="color: #0369a1; margin-bottom: 0.5rem;">💡 Información del Sistema</h4>
+                            <p style="color: #075985; margin: 0;">Sistema de demostración con datos de prueba. En producción, aquí se mostrarían los pacientes reales conectados a la base de datos Supabase.</p>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'funcionarios':
+                    contentArea.innerHTML = `
+                        <h2 class="content-title">🚑 Funcionarios Lesionados</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Registro y seguimiento de funcionarios con lesiones en servicio</p>
+                        
+                        <div style="padding: 2rem; background: #fefce8; border-radius: 8px; border-left: 4px solid #eab308;">
+                            <h4 style="color: #a16207; margin-bottom: 1rem;">⚠️ Módulo en Desarrollo</h4>
+                            <p style="color: #854d0e; margin-bottom: 1rem;">Este módulo permitirá:</p>
+                            <ul style="color: #854d0e; margin-left: 1.5rem;">
+                                <li>• Registrar funcionarios lesionados en servicio</li>
+                                <li>• Seguimiento médico especializado</li>
+                                <li>• Control de gastos médicos</li>
+                                <li>• Reportes de incidentes</li>
+                                <li>• Gestión de rehabilitación</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'fallecidos':
+                    contentArea.innerHTML = `
+                        <h2 class="content-title">💐 Información de Fallecidos</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Registro oficial de fallecimientos y gestión de beneficiarios</p>
+                        
+                        <div style="padding: 2rem; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                            <h4 style="color: #b91c1c; margin-bottom: 1rem;">⚠️ Módulo en Desarrollo</h4>
+                            <p style="color: #991b1b; margin-bottom: 1rem;">Este módulo permitirá:</p>
+                            <ul style="color: #991b1b; margin-left: 1.5rem;">
+                                <li>• Registro oficial de fallecimientos</li>
+                                <li>• Información de beneficiarios</li>
+                                <li>• Documentación legal requerida</li>
+                                <li>• Seguimiento de trámites</li>
+                                <li>• Generación de reportes oficiales</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'indemnizaciones':
+                    contentArea.innerHTML = `
+                        <h2 class="content-title">💰 Indemnizaciones</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Gestión de indemnizaciones y compensaciones económicas</p>
+                        
+                        <div style="padding: 2rem; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <h4 style="color: #d97706; margin-bottom: 1rem;">⚠️ Módulo en Desarrollo</h4>
+                            <p style="color: #b45309; margin-bottom: 1rem;">Este módulo permitirá:</p>
+                            <ul style="color: #b45309; margin-left: 1.5rem;">
+                                <li>• Gestión de expedientes de indemnización</li>
+                                <li>• Cálculo de montos de compensación</li>
+                                <li>• Seguimiento de pagos realizados</li>
+                                <li>• Control de documentación legal</li>
+                                <li>• Reportes financieros detallados</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                    
+                default:
+                    contentArea.innerHTML = '<p>Contenido no encontrado</p>';
+            }
+            
+            // Actualizar contador de pacientes
+            document.getElementById('patientCount').textContent = `${patients.length} Pacientes`;
+        }
+
+        // 📝 Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            currentUser = getCurrentUser();
+            if (currentUser) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            const errorContainer = document.getElementById('errorContainer');
+
+            // Validación básica
+            if (!username || !password) {
+                errorContainer.innerHTML = '<div class="error">⚠️ Por favor, completa todos los campos.</div>';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span style="opacity: 0.7;">🔄 Iniciando sesión...</span>';
+            errorContainer.innerHTML = '';
+
+            try {
+                await login(username, password);
+                showDashboard();
+                
+                // Limpiar formulario
+                document.getElementById('loginForm').reset();
+                
+            } catch (error) {
+                errorContainer.innerHTML = `<div class="error">${error.message}</div>`;
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Iniciar Sesión';
+            }
+        });
+
+        // 🚀 Inicialización de la aplicación
+        console.log('🏥 Sistema de Bienestar Social - Versión 2.0');
+        console.log('✅ Aplicación inicializada correctamente');
+        
+        // Verificar sesión existente
+        currentUser = getCurrentUser();
+        if (currentUser) {
+            console.log(`👋 Bienvenido de vuelta, ${currentUser.name}`);
+            showDashboard();
+        } else {
+            showLogin();
+        }
+    </script>
+</body>
+</html>

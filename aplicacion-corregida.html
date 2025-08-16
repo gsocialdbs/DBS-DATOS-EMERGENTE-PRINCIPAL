@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirección de Bienestar Social</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="app"></div>
+
+    <script>
+        // Configuración de Supabase
+        const supabaseUrl = 'https://gycywakrmwycimimrapt.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y3l3YWtybXd5Y2ltaW1yYXB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1OTkxMjAsImV4cCI6MjA2NzE3NTEyMH0.bLvyAt6tImqelkwvT5C8rD5jVgGiLLrbUCfoVeU234w';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Estado de la aplicación
+        let currentUser = null;
+        let activeTab = 'pacientes';
+
+        // Credenciales válidas
+        const VALID_CREDENTIALS = [
+            { username: 'admin', password: 'bienestar2024', name: 'Administrador General', role: 'admin' },
+            { username: 'medico', password: 'medico123', name: 'Dr. José Méndez', role: 'doctor' },
+            { username: 'enfermera', password: 'enfermera123', name: 'Enf. Carmen López', role: 'nurse' }
+        ];
+
+        // Funciones de autenticación
+        function getCurrentUser() {
+            try {
+                const session = localStorage.getItem('userSession');
+                return session ? JSON.parse(session) : null;
+            } catch { return null; }
+        }
+
+        function login(username, password) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const user = VALID_CREDENTIALS.find(
+                        cred => cred.username === username && cred.password === password
+                    );
+                    if (user) {
+                        const userSession = { ...user, loginTime: new Date().toISOString() };
+                        localStorage.setItem('userSession', JSON.stringify(userSession));
+                        currentUser = userSession;
+                        resolve(userSession);
+                    } else {
+                        reject(new Error('❌ Usuario o contraseña incorrectos'));
+                    }
+                }, 1000);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('userSession');
+            currentUser = null;
+            render();
+        }
+
+        // Funciones de base de datos
+        async function insertarFuncionario(datos) {
+            try {
+                console.log('Insertando funcionario:', datos);
+                
+                const { data, error } = await supabase
+                    .from('funcionarios_lesionados')
+                    .insert([{
+                        funcionario_nombre: datos.nombre,
+                        funcionario_policial: datos.policial,
+                        no_expediente: datos.expediente,
+                        miembro_amputado: datos.miembro,
+                        hospital_traslado: datos.hospital,
+                        total_gastos: parseFloat(datos.gastos) || 0
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error('Error insertando funcionario:', error);
+                    throw error;
+                }
+
+                console.log('Funcionario insertado exitosamente:', data);
+                return data[0];
+            } catch (err) {
+                console.error('Error completo:', err);
+                throw err;
+            }
+        }
+
+        async function obtenerFuncionarios() {
+            try {
+                const { data, error } = await supabase
+                    .from('funcionarios_lesionados')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error obteniendo funcionarios:', err);
+                return [];
+            }
+        }
+
+        async function insertarPaciente(datos) {
+            try {
+                console.log('Insertando paciente:', datos);
+                
+                const { data, error } = await supabase
+                    .from('pacientes')
+                    .insert([{
+                        nombre: datos.nombre,
+                        dni: datos.dni,
+                        grado: datos.grado,
+                        edad: parseInt(datos.edad) || null,
+                        sexo: datos.sexo,
+                        diagnostico: datos.diagnostico,
+                        hospital: datos.hospital,
+                        status: 'interno'
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error('Error insertando paciente:', error);
+                    throw error;
+                }
+
+                console.log('Paciente insertado exitosamente:', data);
+                return data[0];
+            } catch (err) {
+                console.error('Error completo:', err);
+                throw err;
+            }
+        }
+
+        async function obtenerPacientes() {
+            try {
+                const { data, error } = await supabase
+                    .from('pacientes')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error obteniendo pacientes:', err);
+                return [];
+            }
+        }
+
+        // Funciones de interfaz
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!currentUser) {
+                app.innerHTML = renderLogin();
+                attachLoginEvents();
+            } else {
+                app.innerHTML = renderDashboard();
+                attachDashboardEvents();
+            }
+        }
+
+        function renderLogin() {
+            return `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                        <div class="text-center mb-8">
+                            <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <span class="text-4xl">🏥</span>
+                            </div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">Dirección de Bienestar Social</h1>
+                            <p class="text-gray-600">Sistema de Gestión Médica</p>
+                        </div>
+
+                        <div id="errorContainer"></div>
+
+                        <form id="loginForm">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Usuario</label>
+                                <input type="text" id="username" name="username" required 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ingresa tu usuario">
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
+                                <input type="password" id="password" name="password" required 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ingresa tu contraseña">
+                            </div>
+                            
+                            <button type="submit" id="loginBtn" 
+                                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 font-semibold">
+                                Iniciar Sesión
+                            </button>
+                        </form>
+
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">🔑 Credenciales de acceso:</h4>
+                            <p class="text-xs text-gray-600">Usuario: <code class="bg-white px-1 rounded">admin</code></p>
+                            <p class="text-xs text-gray-600">Contraseña: <code class="bg-white px-1 rounded">bienestar2024</code></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            return `
+                <div class="min-h-screen bg-gray-50">
+                    <!-- Header -->
+                    <div class="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+                        <div class="flex justify-between items-center max-w-7xl mx-auto">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-blue-600 font-bold">${currentUser.name.charAt(0)}</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">${currentUser.name}</div>
+                                    <div class="text-xs text-gray-500">${currentUser.role}</div>
+                                </div>
+                            </div>
+                            <button onclick="logout()" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded">
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Header -->
+                    <div class="bg-white text-center py-8">
+                        <h1 class="text-3xl font-bold text-gray-900">🏥 Dirección de Bienestar Social</h1>
+                        <p class="text-gray-600 mt-2">Sistema Integral de Gestión Médica</p>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="bg-white border-b border-gray-200 px-4">
+                        <div class="max-w-7xl mx-auto">
+                            <nav class="flex space-x-8">
+                                <button onclick="setActiveTab('pacientes')" 
+                                        class="nav-btn ${activeTab === 'pacientes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'} 
+                                               whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    👥 Bitácora de Pacientes
+                                </button>
+                                <button onclick="setActiveTab('funcionarios')" 
+                                        class="nav-btn ${activeTab === 'funcionarios' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'} 
+                                               whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    🚑 Funcionarios Lesionados
+                                </button>
+                                <button onclick="setActiveTab('fallecidos')" 
+                                        class="nav-btn ${activeTab === 'fallecidos' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'} 
+                                               whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    💐 Información de Fallecidos
+                                </button>
+                                <button onclick="setActiveTab('indemnizaciones')" 
+                                        class="nav-btn ${activeTab === 'indemnizaciones' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'} 
+                                               whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    💰 Indemnizaciones
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="max-w-7xl mx-auto px-4 py-8">
+                        <div id="contentArea" class="bg-white rounded-lg shadow p-6">
+                            ${renderTabContent()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTabContent() {
+            switch(activeTab) {
+                case 'pacientes':
+                    return `
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">👥 Bitácora de Pacientes</h2>
+                        
+                        <!-- Formulario de Paciente -->
+                        <div class="mb-8 p-6 bg-blue-50 rounded-lg">
+                            <h3 class="text-lg font-semibold text-blue-900 mb-4">➕ Agregar Nuevo Paciente</h3>
+                            <form id="pacienteForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+                                    <input type="text" name="nombre" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">DNI *</label>
+                                    <input type="text" name="dni" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Grado</label>
+                                    <input type="text" name="grado" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Edad</label>
+                                    <input type="number" name="edad" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+                                    <select name="sexo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Seleccionar</option>
+                                        <option value="masculino">Masculino</option>
+                                        <option value="femenino">Femenino</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Hospital</label>
+                                    <input type="text" name="hospital" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Diagnóstico</label>
+                                    <textarea name="diagnostico" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-semibold">
+                                        ➕ Registrar Paciente
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Lista de Pacientes -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Lista de Pacientes</h3>
+                            <div id="pacientesList">
+                                <div class="text-center py-8 text-gray-500">
+                                    <div class="text-4xl mb-2">⏳</div>
+                                    <p>Cargando pacientes...</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                case 'funcionarios':
+                    return `
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">🚑 Funcionarios Lesionados</h2>
+                        
+                        <!-- Formulario de Funcionario -->
+                        <div class="mb-8 p-6 bg-green-50 rounded-lg">
+                            <h3 class="text-lg font-semibold text-green-900 mb-4">➕ Agregar Funcionario Lesionado</h3>
+                            <form id="funcionarioForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Funcionario *</label>
+                                    <input type="text" name="nombre" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Funcionario Policial *</label>
+                                    <input type="text" name="policial" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Expediente</label>
+                                    <input type="text" name="expediente" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Miembro Amputado</label>
+                                    <input type="text" name="miembro" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Hospital de Traslado</label>
+                                    <input type="text" name="hospital" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Total de Gastos</label>
+                                    <input type="number" step="0.01" name="gastos" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 font-semibold">
+                                        ➕ Registrar Funcionario Lesionado
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Lista de Funcionarios -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Lista de Funcionarios Lesionados</h3>
+                            <div id="funcionariosList">
+                                <div class="text-center py-8 text-gray-500">
+                                    <div class="text-4xl mb-2">⏳</div>
+                                    <p>Cargando funcionarios...</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                default:
+                    return `
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">${activeTab === 'fallecidos' ? '💐 Información de Fallecidos' : '💰 Indemnizaciones'}</h2>
+                        <div class="text-center py-12 text-gray-500">
+                            <div class="text-6xl mb-4">🚧</div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Módulo en Desarrollo</h3>
+                            <p>Este módulo estará disponible próximamente.</p>
+                        </div>
+                    `;
+            }
+        }
+
+        function setActiveTab(tab) {
+            activeTab = tab;
+            render();
+        }
+
+        function attachLoginEvents() {
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const loginBtn = document.getElementById('loginBtn');
+                const errorContainer = document.getElementById('errorContainer');
+
+                if (!username || !password) {
+                    errorContainer.innerHTML = '<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700">⚠️ Por favor, completa todos los campos.</div>';
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.textContent = '🔄 Iniciando sesión...';
+                errorContainer.innerHTML = '';
+
+                try {
+                    await login(username, password);
+                    render();
+                } catch (error) {
+                    errorContainer.innerHTML = `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700">${error.message}</div>`;
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Iniciar Sesión';
+                }
+            });
+        }
+
+        function attachDashboardEvents() {
+            // Eventos para formulario de funcionarios
+            const funcionarioForm = document.getElementById('funcionarioForm');
+            if (funcionarioForm) {
+                funcionarioForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const datos = {
+                        nombre: formData.get('nombre'),
+                        policial: formData.get('policial'),
+                        expediente: formData.get('expediente'),
+                        miembro: formData.get('miembro'),
+                        hospital: formData.get('hospital'),
+                        gastos: formData.get('gastos')
+                    };
+
+                    try {
+                        await insertarFuncionario(datos);
+                        e.target.reset();
+                        alert('✅ Funcionario lesionado registrado exitosamente');
+                        cargarFuncionarios();
+                    } catch (error) {
+                        alert('❌ Error al registrar funcionario: ' + error.message);
+                    }
+                });
+
+                cargarFuncionarios();
+            }
+
+            // Eventos para formulario de pacientes
+            const pacienteForm = document.getElementById('pacienteForm');
+            if (pacienteForm) {
+                pacienteForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const datos = {
+                        nombre: formData.get('nombre'),
+                        dni: formData.get('dni'),
+                        grado: formData.get('grado'),
+                        edad: formData.get('edad'),
+                        sexo: formData.get('sexo'),
+                        hospital: formData.get('hospital'),
+                        diagnostico: formData.get('diagnostico')
+                    };
+
+                    try {
+                        await insertarPaciente(datos);
+                        e.target.reset();
+                        alert('✅ Paciente registrado exitosamente');
+                        cargarPacientes();
+                    } catch (error) {
+                        alert('❌ Error al registrar paciente: ' + error.message);
+                    }
+                });
+
+                cargarPacientes();
+            }
+        }
+
+        async function cargarFuncionarios() {
+            const lista = document.getElementById('funcionariosList');
+            if (!lista) return;
+
+            try {
+                const funcionarios = await obtenerFuncionarios();
+                
+                if (funcionarios.length === 0) {
+                    lista.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="text-4xl mb-2">📝</div>
+                            <p>No hay funcionarios lesionados registrados.</p>
+                        </div>
+                    `;
+                } else {
+                    lista.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full table-auto">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policía</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expediente</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hospital</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gastos</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${funcionarios.map(f => `
+                                        <tr>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${f.funcionario_nombre || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${f.funcionario_policial || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${f.no_expediente || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${f.hospital_traslado || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">$${f.total_gastos || '0.00'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                lista.innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        <div class="text-4xl mb-2">❌</div>
+                        <p>Error al cargar funcionarios: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function cargarPacientes() {
+            const lista = document.getElementById('pacientesList');
+            if (!lista) return;
+
+            try {
+                const pacientes = await obtenerPacientes();
+                
+                if (pacientes.length === 0) {
+                    lista.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="text-4xl mb-2">📝</div>
+                            <p>No hay pacientes registrados.</p>
+                        </div>
+                    `;
+                } else {
+                    lista.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full table-auto">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnóstico</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hospital</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${pacientes.map(p => `
+                                        <tr>
+                                            <td class="px-4 py-2 text-sm font-medium text-gray-900">${p.nombre || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${p.dni || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${p.diagnostico || 'N/A'}</td>
+                                            <td class="px-4 py-2 text-sm text-gray-900">${p.hospital || 'N/A'}</td>
+                                            <td class="px-4 py-2">
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    ${p.status || 'Interno'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                lista.innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        <div class="text-4xl mb-2">❌</div>
+                        <p>Error al cargar pacientes: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            currentUser = getCurrentUser();
+            render();
+        });
+
+        console.log('🏥 Sistema de Bienestar Social - Versión Corregida');
+        console.log('✅ Aplicación inicializada correctamente');
+    </script>
+</body>
+</html>

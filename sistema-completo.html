@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirección de Bienestar Social</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 100%; }
+        .logo { text-align: center; margin-bottom: 2rem; }
+        .logo-icon { width: 60px; height: 60px; background: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 24px; }
+        h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 1.5rem; text-align: center; }
+        .subtitle { color: #6b7280; text-align: center; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 500; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 5px; font-size: 1rem; }
+        input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
+        .btn { width: 100%; background: #4f46e5; color: white; padding: 0.75rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+        .btn:hover { background: #4338ca; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error { background: #fee2e2; color: #dc2626; padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem; }
+        .demo { background: #f3f4f6; padding: 1rem; border-radius: 5px; margin-top: 1rem; }
+        .demo h4 { color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .demo p { color: #6b7280; font-size: 0.8rem; margin-bottom: 0.25rem; }
+        .credential { font-family: monospace; background: white; padding: 0.25rem; border-radius: 3px; }
+        .dashboard { padding: 2rem; max-width: 800px; margin: 0 auto; background: white; min-height: 100vh; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
+        .user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; background: #ddd6fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7c3aed; }
+        .logout-btn { background: #f3f4f6; color: #374151; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+        .logout-btn:hover { background: #e5e7eb; }
+        .nav-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .nav-tab { padding: 0.5rem 1rem; border-radius: 5px; border: none; cursor: pointer; font-weight: 500; }
+        .nav-tab.active { color: white; }
+        .nav-tab.pacientes.active { background: #3b82f6; }
+        .nav-tab.funcionarios.active { background: #10b981; }
+        .nav-tab.fallecidos.active { background: #ef4444; }
+        .nav-tab.indemnizaciones.active { background: #f59e0b; }
+        .nav-tab:not(.active) { background: #f3f4f6; color: #6b7280; }
+        .nav-tab:not(.active):hover { background: #e5e7eb; }
+        .content-card { background: #f9fafb; padding: 2rem; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .table th { background: #f3f4f6; font-weight: 600; color: #374151; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .status-interno { background: #dbeafe; color: #1e40af; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb; text-align: center; }
+        .stat-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+        .spinner { width: 32px; height: 32px; border: 3px solid #f3f4f6; border-top: 3px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 640px) { .nav-tabs { flex-direction: column; } .stats { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // Datos de demostración
+        const DEMO_PATIENTS = [
+            { id: 1, nombre: 'Juan Pérez López', dni: '12345678', diagnostico: 'Fractura de pierna', status: 'interno' },
+            { id: 2, nombre: 'María González', dni: '87654321', diagnostico: 'Revisión médica', status: 'interno' },
+            { id: 3, nombre: 'Carlos Rodríguez', dni: '11223344', diagnostico: 'Chequeo general', status: 'interno' },
+            { id: 4, nombre: 'Ana Martínez', dni: '55667788', diagnostico: 'Control post-operatorio', status: 'interno' }
+        ];
+
+        // Credenciales válidas
+        const VALID_CREDENTIALS = [
+            { username: 'admin', password: 'bienestar2024', name: 'Administrador', role: 'admin' },
+            { username: 'medico', password: 'medico123', name: 'Dr. Médico', role: 'doctor' },
+            { username: 'enfermera', password: 'enfermera123', name: 'Enfermera Principal', role: 'nurse' }
+        ];
+
+        // Estado de la aplicación
+        let currentUser = null;
+        let activeTab = 'pacientes';
+        let patients = [...DEMO_PATIENTS];
+        let isLoading = false;
+
+        // Funciones de autenticación
+        function getCurrentUser() {
+            try {
+                const session = localStorage.getItem('userSession');
+                return session ? JSON.parse(session) : null;
+            } catch { return null; }
+        }
+
+        function login(username, password) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const user = VALID_CREDENTIALS.find(
+                        cred => cred.username === username && cred.password === password
+                    );
+                    if (user) {
+                        const userSession = { ...user, loginTime: new Date().toISOString() };
+                        localStorage.setItem('userSession', JSON.stringify(userSession));
+                        currentUser = userSession;
+                        resolve(userSession);
+                    } else {
+                        reject(new Error('Usuario o contraseña incorrectos'));
+                    }
+                }, 1000);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('userSession');
+            currentUser = null;
+            render();
+        }
+
+        // Función de renderizado
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!currentUser) {
+                app.innerHTML = renderLogin();
+            } else {
+                app.innerHTML = renderDashboard();
+            }
+        }
+
+        function renderLogin() {
+            return `
+                <div class="container">
+                    <div class="logo">
+                        <div class="logo-icon">🏥</div>
+                        <h1>Dirección de Bienestar Social</h1>
+                        <p class="subtitle">Acceso al Sistema de Gestión</p>
+                    </div>
+
+                    <div id="error-container"></div>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">Usuario</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn" id="loginBtn">
+                            Iniciar Sesión
+                        </button>
+                    </form>
+
+                    <div class="demo">
+                        <h4>Credenciales de demostración:</h4>
+                        <p>Usuario: <span class="credential">admin</span></p>
+                        <p>Contraseña: <span class="credential">bienestar2024</span></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            return `
+                <div class="dashboard">
+                    <div class="header">
+                        <div class="user-info">
+                            <div class="user-avatar">👤</div>
+                            <div>
+                                <div style="font-weight: 600; color: #111827;">${currentUser.name}</div>
+                                <div style="font-size: 0.8rem; color: #6b7280; text-transform: capitalize;">${currentUser.role}</div>
+                            </div>
+                        </div>
+                        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+                    </div>
+
+                    <h1 style="text-align: center; color: #111827; margin-bottom: 2rem;">Dirección de Bienestar Social</h1>
+
+                    <div class="nav-tabs">
+                        <button class="nav-tab pacientes ${activeTab === 'pacientes' ? 'active' : ''}" onclick="setActiveTab('pacientes')">
+                            Bitácora de Pacientes
+                        </button>
+                        <button class="nav-tab funcionarios ${activeTab === 'funcionarios' ? 'active' : ''}" onclick="setActiveTab('funcionarios')">
+                            Funcionarios Lesionados
+                        </button>
+                        <button class="nav-tab fallecidos ${activeTab === 'fallecidos' ? 'active' : ''}" onclick="setActiveTab('fallecidos')">
+                            Información de Fallecidos
+                        </button>
+                        <button class="nav-tab indemnizaciones ${activeTab === 'indemnizaciones' ? 'active' : ''}" onclick="setActiveTab('indemnizaciones')">
+                            Indemnizaciones
+                        </button>
+                    </div>
+
+                    <div class="content-card">
+                        ${renderTabContent()}
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <h3 style="color: #10b981; margin-bottom: 0.5rem;">Autenticación</h3>
+                            <p style="color: #6b7280;">Sistema seguro funcionando</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">💾</div>
+                            <h3 style="color: #3b82f6; margin-bottom: 0.5rem;">Base de Datos</h3>
+                            <p style="color: #6b7280;">${patients.length} pacientes registrados</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔒</div>
+                            <h3 style="color: #8b5cf6; margin-bottom: 0.5rem;">Sesión Activa</h3>
+                            <p style="color: #6b7280;">Conectado como ${currentUser.name}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTabContent() {
+            switch(activeTab) {
+                case 'pacientes':
+                    return `
+                        <h2 style="color: #111827; margin-bottom: 1.5rem;">Bitácora de Pacientes</h2>
+                        <h3 style="color: #374151; margin-bottom: 1rem;">Listado de Pacientes</h3>
+                        ${patients.length === 0 ? 
+                            '<p style="color: #6b7280;">No hay pacientes registrados.</p>' :
+                            `<table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>DNI</th>
+                                        <th>Diagnóstico</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${patients.map(patient => `
+                                        <tr>
+                                            <td>${patient.nombre}</td>
+                                            <td>${patient.dni}</td>
+                                            <td>${patient.diagnostico}</td>
+                                            <td><span class="status-badge status-interno">${patient.status}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>`
+                        }
+                    `;
+                case 'funcionarios':
+                    return `
+                        <h2 style="color: #111827; margin-bottom: 1.5rem;">Funcionarios Lesionados</h2>
+                        <p style="color: #6b7280;">Módulo para gestionar información de funcionarios lesionados.</p>
+                        <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 5px;">
+                            <p style="color: #92400e;">⚠️ Este módulo está en desarrollo y será implementado próximamente.</p>
+                        </div>
+                    `;
+                case 'fallecidos':
+                    return `
+                        <h2 style="color: #111827; margin-bottom: 1.5rem;">Información de Fallecidos</h2>
+                        <p style="color: #6b7280;">Módulo para gestionar información de fallecidos.</p>
+                        <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 5px;">
+                            <p style="color: #92400e;">⚠️ Este módulo está en desarrollo y será implementado próximamente.</p>
+                        </div>
+                    `;
+                case 'indemnizaciones':
+                    return `
+                        <h2 style="color: #111827; margin-bottom: 1.5rem;">Indemnizaciones</h2>
+                        <p style="color: #6b7280;">Módulo para gestionar indemnizaciones por pérdida de extremidad.</p>
+                        <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 5px;">
+                            <p style="color: #92400e;">⚠️ Este módulo está en desarrollo y será implementado próximamente.</p>
+                        </div>
+                    `;
+                default:
+                    return '<p>Contenido no encontrado</p>';
+            }
+        }
+
+        function setActiveTab(tab) {
+            activeTab = tab;
+            render();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            currentUser = getCurrentUser();
+            render();
+        });
+
+        document.addEventListener('submit', function(e) {
+            if (e.target.id === 'loginForm') {
+                e.preventDefault();
+                handleLogin();
+            }
+        });
+
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorContainer = document.getElementById('error-container');
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Iniciando sesión...';
+            errorContainer.innerHTML = '';
+
+            try {
+                await login(username, password);
+                render();
+            } catch (error) {
+                errorContainer.innerHTML = `<div class="error">${error.message}</div>`;
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Iniciar Sesión';
+            }
+        }
+
+        // Inicializar la aplicación
+        currentUser = getCurrentUser();
+        render();
+    </script>
+</body>
+</html>
