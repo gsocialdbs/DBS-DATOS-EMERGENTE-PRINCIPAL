@@ -121,6 +121,73 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
       </section>
 
       <section>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Estado y Información de Alta</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <select name="status" value={patient.status} onChange={handleChange} className="input-field">
+            <option value="interno">Interno (Hospitalizado)</option>
+            <option value="alta">Dado de Alta</option>
+            <option value="transferido">Transferido</option>
+            <option value="referido">Referido</option>
+          </select>
+          
+          {patient.status === 'alta' && (
+            <>
+              <input 
+                type="date" 
+                name="fechaAlta" 
+                value={patient.fechaAlta} 
+                onChange={handleChange} 
+                placeholder="Fecha de Alta" 
+                className="input-field" 
+              />
+              <input 
+                type="number" 
+                name="diasIncapacidad" 
+                value={patient.diasIncapacidad} 
+                onChange={handleChange} 
+                placeholder="Días de Incapacidad" 
+                className="input-field" 
+              />
+              <textarea 
+                name="observacionesAlta" 
+                value={patient.observacionesAlta} 
+                onChange={handleChange} 
+                placeholder="Observaciones del Alta" 
+                className="input-field col-span-full" 
+                rows="2"
+              />
+            </>
+          )}
+        </div>
+        
+        {patient.status === 'alta' && (patient.fechaAlta || patient.observacionesAlta || patient.diasIncapacidad) && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="text-md font-semibold text-green-800 mb-2">📋 Información de Alta Registrada</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              {patient.fechaAlta && (
+                <div>
+                  <span className="font-medium text-green-700">Fecha de Alta:</span>
+                  <p className="text-green-900">{new Date(patient.fechaAlta).toLocaleDateString()}</p>
+                </div>
+              )}
+              {patient.diasIncapacidad && (
+                <div>
+                  <span className="font-medium text-green-700">Días de Incapacidad:</span>
+                  <p className="text-green-900">{patient.diasIncapacidad} días</p>
+                </div>
+              )}
+              {patient.observacionesAlta && (
+                <div className="md:col-span-3">
+                  <span className="font-medium text-green-700">Observaciones:</span>
+                  <p className="text-green-900">{patient.observacionesAlta}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Registro de Visitas</h3>
         <div className="space-y-4 mb-4">
           {(patient.visitas || []).map((visita, index) => (
