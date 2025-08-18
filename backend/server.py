@@ -118,6 +118,7 @@ class PacienteCreate(BaseModel):
     fecha_alta: Optional[date] = None
     observaciones_alta: Optional[str] = None
     dias_incapacidad: Optional[int] = None
+    visitas: Optional[List[Dict]] = Field(default_factory=list)
 
 # Modelo para Funcionarios Lesionados
 class FuncionarioLesionado(BaseModel):
