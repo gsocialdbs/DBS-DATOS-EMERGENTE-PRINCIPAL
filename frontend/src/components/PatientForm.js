@@ -54,10 +54,17 @@ export const PatientForm = ({ onAddPatient, patientToEdit, onUpdatePatient }) =>
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Preparar datos del paciente con las visitas incluidas
+    const pacientData = {
+      ...patient,
+      visitas: patient.visitas || []
+    };
+    
     if (patientToEdit) {
-      onUpdatePatient(patient);
+      onUpdatePatient(pacientData);
     } else {
-      onAddPatient({ ...patient, id: Date.now() });
+      onAddPatient({ ...pacientData, id: Date.now() });
     }
     setPatient(initialPatientState); // Reset form
   };
