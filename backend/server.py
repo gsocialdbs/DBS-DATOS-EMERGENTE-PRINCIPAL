@@ -34,6 +34,17 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Modelo para Visitas
+class Visita(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    visitaNombre: str
+    visitaGrado: Optional[str] = None
+    visitaDireccion: Optional[str] = None
+    acompanantes: Optional[str] = None
+    fechaVisita: Optional[date] = None
+    notas: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 # Modelo para Pacientes
 class Paciente(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -71,6 +82,9 @@ class Paciente(BaseModel):
     fecha_alta: Optional[date] = None
     observaciones_alta: Optional[str] = None
     dias_incapacidad: Optional[int] = None
+    
+    # Historial de visitas
+    visitas: Optional[List[Dict]] = Field(default_factory=list)
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
